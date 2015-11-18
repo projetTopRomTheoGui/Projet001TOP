@@ -1,1 +1,19 @@
-test
+How to:
+La première fois:
+Faire un cd vers le dossier à utiliser
+Faire git clone url-du-git
+
+Avant une modif
+cd le dossier du projet
+git pull
+
+Après une modif
+on refait un git pull
+git add .
+Ensuite git commit
+entrer un message
+ctrl+x
+O
+et entrer
+puis git push
+puis c'est bon !
