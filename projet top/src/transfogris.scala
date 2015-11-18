@@ -28,19 +28,20 @@ object transfogris extends App {
   //Calculer la diff entre deux pixels en entree la couleur en hexa
   def distance(pixela:Int,pixelb:Int):Int={
     var r = (pixela>>16)%256;
-	var v = (pixela>>8)%256;
-	var b = pixela%256;
+	  var v = (pixela>>8)%256;
+	  var b = pixela%256;
 	
-	var r2 = (pixelb>>16)%256;
-	var v2 = (pixelb>>8)%256;
-	var b2 = pixelb%256;
+	  var r2 = (pixelb>>16)%256;
+	  var v2 = (pixelb>>8)%256;
+	  var b2 = pixelb%256;
 	
-	return (Math.sqrt((r-r2)^2+(v-v2)^2+(b-b2)^2)*20).toInt;
+    
+	return (Math.sqrt(Math.pow(r-r2,2)+Math.pow(v-v2,2)+Math.pow(b-b2,2))).toInt;
 	
   }
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "/home/etudiants/ruchot1u/Bureau/1_GoogleMaps.png"
+	var filename : String = "assets/001.png"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
 	
@@ -60,19 +61,16 @@ object transfogris extends App {
 	    
 	    moy = moy(pixelRight,pixelBottom);
 	    
-	    
-	    if(distance(moy,currentPixel)>50){
-	      couleur = 255
-	    }else{
-	      couleur = 0
+	    if(distance(moy,currentPixel)<30){
+	      image2D(row)(col)=currentPixel+0xFF000000;
+	      image2D(row)(col+1)=currentPixel+0xFF000000;
+	      image2D(row+1)(col)=currentPixel+0xFF000000;
 	    }
 	    
-	    //compteur=Math.min((compteur.toFloat*((50f-compteur.toFloat)/50f)).toInt,255)
-	    var nouveauPixel = couleur*(1+256+256*256)+ 0xFF000000
+
 	    
-	    image2D(row)(col)=nouveauPixel
 	  }
 	}
-	var outputFile:String="/home/etudiants/ruchot1u/Bureau/imageengris3.jpg"
+	var outputFile:String="assets/out.jpg"
 	wrappedImage.saveImage(outputFile)
 }
