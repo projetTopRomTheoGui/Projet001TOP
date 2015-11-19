@@ -4,8 +4,8 @@ object transfogris extends App {
   //Renvois la valeur en B&W
   def toBW(pixel:Int):Int={
     var r = (pixel>>16)%256;
-	var v = (pixel>>8)%256;
-	var b = pixel%256;
+	  var v = (pixel>>8)%256;
+	  var b = pixel%256;
 	
 	return ((r+v+b)/3)*(1+256+256*256);
 	
@@ -41,10 +41,12 @@ object transfogris extends App {
   }
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "assets/001.png"
+	var filename : String = "assets/3_GoogleMaps.png"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
-	
+	var wrappedImage_ori : ImageWrapper = new ImageWrapper(filename);
+  var image2D_originale : Array[Array[Int]] = wrappedImage_ori.getImage();
+
 	
 	var currentPixel=0;
 	var pixelRight=0;
@@ -54,23 +56,29 @@ object transfogris extends App {
 	for(row <- 0 until wrappedImage.height-1){
 	  for(col <- 0 until wrappedImage.width-1){
 	    //On enlève le canal alpha sinon scala comprend du signé 
-	    currentPixel=image2D(row)(col)-0xFF000000
+	    currentPixel=image2D_originale(row)(col)-0xFF000000
 	    
-	    pixelRight=image2D(row)(col+1)-0xFF000000
-	    pixelBottom=image2D(row+1)(col)-0xFF000000
+	    pixelRight=image2D_originale(row)(col+1)-0xFF000000
+	    pixelBottom=image2D_originale(row+1)(col)-0xFF000000
 	    
 	    moy = moy(pixelRight,pixelBottom);
 	    
-	    if(distance(moy,currentPixel)<30){
-	      image2D(row)(col)=currentPixel+0xFF000000;
-	      image2D(row)(col+1)=currentPixel+0xFF000000;
-	      image2D(row+1)(col)=currentPixel+0xFF000000;
-	    }
+	    
+	     if(distance(toBW(currentPixel),currentPixel)<20){
+	        image2D(row)(col)=0xFF00FF00;
+	      }
+        if(distance(toBW(currentPixel),currentPixel)>40){
+	        image2D(row)(col)=0xFFFFFFFF;
+	      }
+	      if(distance(moy,currentPixel)>30){
+	        image2D(row)(col)=0xFFFF0000;
+	      }
+	   
 	    
 
 	    
 	  }
 	}
-	var outputFile:String="assets/out.jpg"
+	var outputFile:String="assets/outc.jpg"
 	wrappedImage.saveImage(outputFile)
 }
