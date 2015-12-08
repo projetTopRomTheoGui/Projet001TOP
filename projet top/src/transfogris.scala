@@ -10,6 +10,17 @@ object transfogris extends App {
 	return ((r+v+b)/3)*(1+256+256*256);
 	
   }
+  //fonction de copie de tableaux
+  def copy(src:Array[Array[Int]]):Array[Array[Int]]={
+    var dst = new Array[Array[Int]](src.length)
+    for(i<- 0 until src.length){
+      dst(i)= new Array[Int](src(0).length)
+      for (j<-0 until src(0).length){
+        dst(i)(j)=src(i)(j)
+      }
+    }
+    return dst
+  }
   
   //Calculer la moy entre deux pixels en entree la couleur en hexa
   def moy(pixela:Int,pixelb:Int):Int={
@@ -41,43 +52,72 @@ object transfogris extends App {
   }
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "assets/001 copy.png"
+	var filename : String = "assets/001.png"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
-	var wrappedImage_ori : ImageWrapper = new ImageWrapper(filename);
-  var image2D_originale : Array[Array[Int]] = wrappedImage_ori.getImage();
 
 	
-	var currentPixel=0;
-	var pixelRight=0;
-	var pixelBottom=0;
-	var moy = 0;
-	var couleur = 0;
-	for(row <- 0 until wrappedImage.height-1){
-	  for(col <- 0 until wrappedImage.width-1){
-	    //On enlève le canal alpha sinon scala comprend du signé 
-	    currentPixel=image2D_originale(row)(col)-0xFF000000
-	    
-	    pixelRight=image2D_originale(row)(col+1)-0xFF000000
-	    pixelBottom=image2D_originale(row+1)(col)-0xFF000000
-	    
-	    moy = moy(pixelRight,pixelBottom);
-	    
-	      if(distance(moy,currentPixel)>30){
-	        image2D(row)(col)=0xFFFF0000;
-	      //}else if(distance(toBW(currentPixel),currentPixel)<20){
-	      //  image2D(row)(col)=0xFFFF9900;
-	      //}else if(distance(toBW(currentPixel),currentPixel)>40){
-	      //  image2D(row)(col)=0xFF660000;
-	      }else{
-	        image2D(row)(col)=0xFFFFFFFF;
-	      }
-	   
-	    
+	//fonction de transformation de l'image en gris
+	def toGrey(image2D:Array[Array[Int]]):Array[Array[Int]]={
+		var image=image2D;
+		var currentPixel=0
+		for(row <- 0 until wrappedImage.height){
+			for(col <- 0 until wrappedImage.width){
+				//On enlève le canal alpha sinon scala comprend du signé 
+				currentPixel=image2D(row)(col)-0xFF000000
+				currentPixel=toBW(currentPixel)
 
-	    
-	  }
+				image(row)(col)=currentPixel
+			}
+		}
+		return image
 	}
-	var outputFile:String="assets/art.jpg"
+	
+	//algorithme de Sobel
+	def Sobel(image2D:Array[Array[Int]]):Array[Array[Int]]={
+	  var image=toGrey(image2D)
+	  var image2=copy(image)
+	  //code variable : b-m-h = bas-milieu-haut  g-m-d = gauche-milieu-droite
+	  var hg = 0
+	  var mg = 0
+	  var bg = 0
+	  var hm = 0
+	  var bm = 0
+	  var hd = 0
+	  var md = 0
+	  var bd = 0
+	  //def des gradients
+	  var gradX=0
+	  var gradY=0
+	  var grad=0
+	  for(row <- 1 until wrappedImage.height-2){
+		  for(col <- 1 until wrappedImage.width-2){
+			  hg=image2(row-1)(col-1)%256
+			  mg=image2(row)(col-1)%256
+			  bg=image2(row+1)(col-1)%256
+			  hm=image2(row-1)(col)%256
+			  bm=image2(row+1)(col)%256
+			  hd=image2(row-1)(col+1)%256
+			  md=image2(row)(col+1)%256
+			  bd=image2(row+1)(col+1)%256
+			  gradX=hd+2*md+bd-hg-2*mg-bg
+			  gradY=hg+2*hm+hd-bg-2*bm-bd
+			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
+			  grad=255-grad
+			  if (grad>180){
+			    grad=255
+			  } else if(grad<90){
+			    grad=0
+			  } else{
+			    grad=127
+			  }
+			  image(row)(col)=grad+grad*256+grad*256*256
+			  //Console.err.println(gradX+" "+gradY+" "+grad+" "+image(row)(col)%256)
+		  }
+	  }
+	return image2
+	}
+	image2D=Sobel(image2D)
+	var outputFile:String="assets/artnulle.jpg"
 	wrappedImage.saveImage(outputFile)
 }
