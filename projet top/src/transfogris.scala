@@ -41,7 +41,7 @@ object transfogris extends App {
   }
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "assets/3_GoogleMaps.png"
+	var filename : String = "assets/001 copy.png"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
 	var wrappedImage_ori : ImageWrapper = new ImageWrapper(filename);
@@ -63,15 +63,14 @@ object transfogris extends App {
 	    
 	    moy = moy(pixelRight,pixelBottom);
 	    
-	    
-	     if(distance(toBW(currentPixel),currentPixel)<20){
-	        image2D(row)(col)=0xFF00FF00;
-	      }
-        if(distance(toBW(currentPixel),currentPixel)>40){
-	        image2D(row)(col)=0xFFFFFFFF;
-	      }
 	      if(distance(moy,currentPixel)>30){
 	        image2D(row)(col)=0xFFFF0000;
+	      //}else if(distance(toBW(currentPixel),currentPixel)<20){
+	      //  image2D(row)(col)=0xFFFF9900;
+	      //}else if(distance(toBW(currentPixel),currentPixel)>40){
+	      //  image2D(row)(col)=0xFF660000;
+	      }else{
+	        image2D(row)(col)=0xFFFFFFFF;
 	      }
 	   
 	    
@@ -79,6 +78,6 @@ object transfogris extends App {
 	    
 	  }
 	}
-	var outputFile:String="assets/outc.jpg"
+	var outputFile:String="assets/art.jpg"
 	wrappedImage.saveImage(outputFile)
 }
