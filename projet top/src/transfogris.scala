@@ -51,117 +51,110 @@ object transfogris extends App {
 	
   }
   
-  def getCouleurRoute(routeSize:Int,image2D:Array[Array[Int]],x:Int,y:Int):Int={
+  def getCouleurRoute(lenght:Int,x:Int,y:Int,angle:Int):Int={
     
-    var largeur = (routeSize/2).toInt;
-    if(routeSize-largeur%2!=0){
-      largeur=largeur+1;
-    }
-    var decalage = (routeSize-largeur)/2;
-    var quart = decalage;
+        
+
     
-    var totalR = 0;
-    var totalV = 0;
-    var totalB = 0;
+    var total = 0;
     var n =0;
     
-    var color = new Array[Int](3);
+    var color = Int;
     
-    for(i <- 0 to routeSize){
-      
-      for(j <- 0 to largeur){
-        color = rvb(image2D(i+x-(routeSize/2).toInt)(j+decalage+y-(routeSize/2).toInt));
-        totalR += color(0);
-        totalV += color(1);
-        totalB += color(2);
-        n+=1;
-      }
-      
-      if(i<quart){
-        decalage += -1;
-        largeur += 2;
-      }
-      if(i>routeSize-quart){
-        decalage += 1;
-        largeur += -2;
-      }
-      
+    var angleX = Math.cos(Math.toRadians(angle));
+    var angleY = Math.sin(Math.toRadians(angle));
+    for(i<- 1 to lenght){
+      total += toBW(image2D_originale(x+(i*angleX).toInt)(y+(i*angleY).toInt)-0xFF000000);
+      n+=1;
     }
     
-    return (totalR/n).toInt*0x00010000+(totalV/n).toInt*0x00000100+(totalB/n).toInt*0x00000001;
+    for(i<- 1 to lenght){
+      image2D(x+(i*angleX).toInt)(y+(i*angleY).toInt)=(total/n).toInt*0x00010101 + 0xFF000000;
+    }
+    image2D(x+(lenght*angleX).toInt)(y+(lenght*angleY).toInt)=0xFF0000FF;
+    
+
+    return (total/n).toInt*0x00010101 + 0xFF000000;
     
   }
   
   
   ///COLOR
-  def setCouleurRoute(routeSize:Int,image2D:Array[Array[Int]],x:Int,y:Int,color:Int)={
+  def traceLigne(angle:Int,x:Int,y:Int,length:Int,color:Int)={
+
     
-    var largeur = (routeSize/2).toInt;
-    if(routeSize-largeur%2!=0){
-      largeur=largeur+1;
-    }
-    var decalage = (routeSize-largeur)/2;
-    var quart = decalage;
+    var angleX = Math.cos(Math.toRadians(angle));
+    var angleY = Math.sin(Math.toRadians(angle));
     
-    var total = 0;
-    var n =0;
-    
-    for(i <- 0 to routeSize){
-      
-      for(j <- 0 to largeur){
-        image2D(i+x-(routeSize/2).toInt)(j+decalage+y-(routeSize/2).toInt) = 0xFF000000 + color;
-        n+=1;
-      }
-      
-      if(i<quart){
-        decalage += -1;
-        largeur += 2;
-      }
-      if(i>routeSize-quart){
-        decalage += 1;
-        largeur += -2;
-      }
-      
+    for(i<- 1 to length){
+      image2D(x+(i*angleX).toInt)(y+(i*angleY).toInt) = color;
     }
         
   }
   
-  def rechercheProchain(x:Int,y:Int,routeSize:Int,length:Int,anglei:Int):Array[Int]={
-    
-    
-    
-    var color = getCouleurRoute(routeSize,image2D_originale,y,x);
-    
-    var angle = anglei-90;
+  def rechercheProchain(x:Int,y:Int,routeSize:Int,length:Int,anglei:Int,color:Int):Array[Int]={
+        
+    var angle = anglei-40;
     
     var xi = 0;
     var yi = 0;
     var min = 600000;
-    
+    var thisc = 0;
     var dist = 0;
     var minx = x;
     var miny = y;
     var minangle = angle;
-    
-    while(angle<anglei+90){
-      
+    var mincolor = 0;
+    println("start "+color.toHexString);
+    while(angle<anglei+40){
       xi = x + (length*Math.cos(Math.toRadians(angle))).toInt;
       yi = y + (length*Math.sin(Math.toRadians(angle))).toInt;
+      thisc = getCouleurRoute(20,x,y,angle);
       
-      dist = distance(getCouleurRoute(routeSize,image2D_originale,yi,xi),color);
+      dist = distance(thisc,color);
+      println(dist + " " +thisc.toHexString);
 	    if(dist<min){
 	      min = dist;
 	      minx = xi;
 	      miny = yi;
 	      minangle = angle;
+	      mincolor = thisc;
 	    }
+	    
+	    //traceLigne(angle,x,y,length,getCouleurRoute(routeSize*4,yi,xi,angle));
       
       angle += 1;
     }
     
-    setCouleurRoute(2,image2D,miny,minx,0x00FF0000)
     
-    return Array(minx,miny,minangle);
+    return Array(minx,miny,minangle,mincolor,min);
+    
+  }
+  
+  def recursion(x:Int,y:Int,routeSize:Int,length:Int,anglei:Int,color:Int){
+    
+    
+    var resultat = rechercheProchain(x,y,routeSize,length,anglei,color);
+    if(resultat(4)<10 && resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
+      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3));
+      traceLigne(resultat(2),x,y,length,0x00FFFFFF);
+    }else{
+      println("avant :" + resultat(4));
+      traceLigne(resultat(2),x,y,length*4,0x0000FFFF);
+    }
+    
+    resultat = rechercheProchain(x,y,routeSize,length,anglei+90,color);
+    if(resultat(4)<10 && resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
+      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3));
+      traceLigne(resultat(2),x,y,length,0x00FFFFFF);
+    }
+    
+    resultat = rechercheProchain(x,y,routeSize,length,anglei-90,color);
+    if(resultat(4)<10 && resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
+      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3));
+      traceLigne(resultat(2),x,y,length,0x00FFFFFF);
+    }
+    
     
   }
   
@@ -179,15 +172,19 @@ object transfogris extends App {
 	var moy = 0;
 	var couleur = 0;
 	
-	var xy = Array(323,315,0);	  
+	var xy = Array(262,72,80,0x00000000);	  
+
+	traceLigne(xy(2),xy(0),xy(1),200,0x0000FF00);
+	
+	//traceLigne(0,xy(0)-50,xy(1),100,0x00FF0000);
+  //traceLigne(90,xy(0),xy(1)-50,100,0x00FF0000);
+  
+	recursion(xy(0),xy(1),4,8,xy(2),xy(3));
 	
 	
-	for(i <- 0 to 100){
-	  xy = rechercheProchain(xy(0),xy(1),7,20,xy(2));
-	  println(xy(0) + " " + xy(1) + " " +xy(2));
-	}
 
 
+	println("finished");
 	for(row <- 0 until wrappedImage.height-1){
 	  for(col <- 0 until wrappedImage.width-1){
 	    //On enlève le canal alpha sinon scala comprend du signé 
