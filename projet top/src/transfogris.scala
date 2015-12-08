@@ -128,21 +128,34 @@ object transfogris extends App {
   
   def rechercheProchain(x:Int,y:Int,routeSize:Int,length:Int){
     
-    setCouleurRoute(7,image2D_originale,y,x,getCouleurRoute(7,image2D_originale,y,x));
+    var color = getCouleurRoute(7,image2D_originale,y,x);
     
     var angle = 0;
     
     var xi = 0;
     var yi = 0;
+    var min = 600;
+    
+    var dist = 0;
+    var minx = x;
+    var miny = y;
+    
     while(angle<360){
       
       xi = x + (length*Math.cos(Math.toRadians(angle))).toInt;
       yi = y + (length*Math.sin(Math.toRadians(angle))).toInt;
       
-	    setCouleurRoute(7,image2D_originale,yi,xi,getCouleurRoute(7,image2D_originale,yi,xi));
+      dist = distance(getCouleurRoute(7,image2D_originale,yi,xi),color);
+	    if(dist<min){
+	      min = dist;
+	      minx = xi;
+	      miny = yi;
+	    }
       
       angle += 20;
     }
+    
+    setCouleurRoute(7,image2D_originale,miny,minx,0x00FF0000)
     
     
     
