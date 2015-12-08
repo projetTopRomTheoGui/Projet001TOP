@@ -126,43 +126,47 @@ object transfogris extends App {
         
   }
   
-  def rechercheProchain(x:Int,y:Int,routeSize:Int,length:Int){
+  def rechercheProchain(x:Int,y:Int,routeSize:Int,length:Int,anglei:Int):Array[Int]={
     
-    var color = getCouleurRoute(7,image2D_originale,y,x);
     
-    var angle = 0;
+    
+    var color = getCouleurRoute(routeSize,image2D_originale,y,x);
+    
+    var angle = anglei-90;
     
     var xi = 0;
     var yi = 0;
-    var min = 600;
+    var min = 600000;
     
     var dist = 0;
     var minx = x;
     var miny = y;
+    var minangle = angle;
     
-    while(angle<360){
+    while(angle<anglei+90){
       
       xi = x + (length*Math.cos(Math.toRadians(angle))).toInt;
       yi = y + (length*Math.sin(Math.toRadians(angle))).toInt;
       
-      dist = distance(getCouleurRoute(7,image2D_originale,yi,xi),color);
+      dist = distance(getCouleurRoute(routeSize,image2D_originale,yi,xi),color);
 	    if(dist<min){
 	      min = dist;
 	      minx = xi;
 	      miny = yi;
+	      minangle = angle;
 	    }
       
-      angle += 20;
+      angle += 1;
     }
     
-    setCouleurRoute(7,image2D_originale,miny,minx,0x00FF0000)
+    setCouleurRoute(2,image2D,miny,minx,0x00FF0000)
     
-    
+    return Array(minx,miny,minangle);
     
   }
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "assets/001.png"
+	var filename : String = "assets/001.jpg"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
 	var wrappedImage_ori : ImageWrapper = new ImageWrapper(filename);
@@ -175,10 +179,13 @@ object transfogris extends App {
 	var moy = 0;
 	var couleur = 0;
 	
-	var y = 106;
-	var x = 1247;	  
+	var xy = Array(323,315,0);	  
 	
-	rechercheProchain(x,y,7,14);
+	
+	for(i <- 0 to 100){
+	  xy = rechercheProchain(xy(0),xy(1),7,20,xy(2));
+	  println(xy(0) + " " + xy(1) + " " +xy(2));
+	}
 
 
 	for(row <- 0 until wrappedImage.height-1){
@@ -192,5 +199,5 @@ object transfogris extends App {
 	  }
 	}
 	var outputFile:String="assets/art001.jpg"
-	wrappedImage_ori.saveImage(outputFile)
+	wrappedImage.saveImage(outputFile)
 }
