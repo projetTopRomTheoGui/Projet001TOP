@@ -128,17 +128,18 @@ object transfogris extends App {
   
   def rechercheProchain(x:Int,y:Int,routeSize:Int,length:Int){
     
+    setCouleurRoute(7,image2D_originale,y,x,getCouleurRoute(7,image2D_originale,y,x));
+    
     var angle = 0;
     
-    var colors = Array[Array[Int]]
-    var x = 0;
-    var y = 0;
+    var xi = 0;
+    var yi = 0;
     while(angle<360){
       
-      x = ;
-      y = ;
+      xi = x + (length*Math.cos(Math.toRadians(angle))).toInt;
+      yi = y + (length*Math.sin(Math.toRadians(angle))).toInt;
       
-	    setCouleurRoute(7,image2D_originale,y,x,getCouleurRoute(7,image2D_originale,y,x));
+	    setCouleurRoute(7,image2D_originale,yi,xi,getCouleurRoute(7,image2D_originale,yi,xi));
       
       angle += 20;
     }
@@ -162,9 +163,10 @@ object transfogris extends App {
 	var couleur = 0;
 	
 	var y = 106;
-	var x = 1247;
+	var x = 1247;	  
 	
-	setCouleurRoute(7,image2D_originale,y,x,getCouleurRoute(7,image2D_originale,y,x));
+	rechercheProchain(x,y,7,14);
+
 
 	for(row <- 0 until wrappedImage.height-1){
 	  for(col <- 0 until wrappedImage.width-1){
