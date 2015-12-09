@@ -52,7 +52,7 @@ object transfogris extends App {
   }
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "assets/001.png"
+	var filename : String = "assets/athens_city02.jpg"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
 
@@ -77,7 +77,11 @@ object transfogris extends App {
 	def Sobel(image2D:Array[Array[Int]]):Array[Array[Int]]={
 	  var image=toGrey(image2D)
 	  var image2=copy(image)
-	  //code variable : b-m-h = bas-milieu-haut  g-m-d = gauche-milieu-droite
+	  //code variable : b-m-h = bas-milieu-haut  g-m-d = gauche-milieu-droite  (multiple = plus loin)
+	  var mgg = 0
+	  var hhm = 0
+	  var mdd = 0
+	  var bbm = 0
 	  var hg = 0
 	  var mg = 0
 	  var bg = 0
@@ -90,8 +94,12 @@ object transfogris extends App {
 	  var gradX=0
 	  var gradY=0
 	  var grad=0
-	  for(row <- 1 until wrappedImage.height-2){
-		  for(col <- 1 until wrappedImage.width-2){
+	  for(row <- 2 until wrappedImage.height-3){
+		  for(col <- 2 until wrappedImage.width-3){
+			  mgg=image2(row)(col-2)%256
+			  hhm=image2(row-2)(col)%256
+			  mdd=image2(row)(col+2)%256
+			  bbm=image2(row+2)(col)%256
 			  hg=image2(row-1)(col-1)%256
 			  mg=image2(row)(col-1)%256
 			  bg=image2(row+1)(col-1)%256
@@ -100,17 +108,15 @@ object transfogris extends App {
 			  hd=image2(row-1)(col+1)%256
 			  md=image2(row)(col+1)%256
 			  bd=image2(row+1)(col+1)%256
-			  gradX=hd+2*md+bd-hg-2*mg-bg
-			  gradY=hg+2*hm+hd-bg-2*bm-bd
+			  gradX=hd+2*md+bd-hg-2*mg-bg+(0.5*(mdd-mgg)).toInt
+			  gradY=hg+2*hm+hd-bg-2*bm-bd+(0.5*(hhm-bbm)).toInt
 			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
 			  grad=255-grad
-			  if (grad>180){
+			  /*if (grad>140){
 			    grad=255
-			  } else if(grad<90){
+			  } else {
 			    grad=0
-			  } else{
-			    grad=127
-			  }
+			  }*/
 			  image(row)(col)=grad+grad*256+grad*256*256
 			  //Console.err.println(gradX+" "+gradY+" "+grad+" "+image(row)(col)%256)
 		  }
@@ -118,6 +124,6 @@ object transfogris extends App {
 	return image2
 	}
 	image2D=Sobel(image2D)
-	var outputFile:String="assets/artnulle.jpg"
+	var outputFile:String="assets/arteuuuuuuuh.jpg"
 	wrappedImage.saveImage(outputFile)
 }
