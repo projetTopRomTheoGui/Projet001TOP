@@ -37,7 +37,7 @@ object transfogris extends App {
   }
   
   //Calculer la diff entre deux pixels en entree la couleur en hexa
-  def distance(pixela:Int,pixelb:Int):Int={
+  /*def distance(pixela:Int,pixelb:Int):Int={
     var r = (pixela>>16)%256;
 	  var v = (pixela>>8)%256;
 	  var b = pixela%256;
@@ -49,7 +49,7 @@ object transfogris extends App {
     
 	return (Math.sqrt(Math.pow(r-r2,2)+Math.pow(v-v2,2)+Math.pow(b-b2,2))).toInt;
 	
-  }
+  }*/
   
     // obtenir l'image dans un tableau 2D
 	var filename : String = "assets/athens_city02.jpg"
