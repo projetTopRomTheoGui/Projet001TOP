@@ -53,9 +53,6 @@ object transfogris extends App {
   
   def getCouleurRoute(lenght:Int,x:Int,y:Int,angle:Int):Int={
     
-        
-
-    
     var total = 0;
     var n =0;
     
@@ -131,12 +128,15 @@ object transfogris extends App {
     
   }
   
-  def recursion(x:Int,y:Int,routeSize:Int,length:Int,anglei:Int,color:Int){
+  def recursion(x:Int,y:Int,routeSize:Int,length:Int,anglei:Int,color:Int,nb:Int){
     
+    if(nb<1){
+      return
+    }
     
     var resultat = rechercheProchain(x,y,routeSize,length,anglei,color);
-    if(resultat(4)<10 && resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
-      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3));
+    if(resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
+      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3),nb-1);
       traceLigne(resultat(2),x,y,length,0x00FFFFFF);
     }else{
       println("avant :" + resultat(4));
@@ -145,13 +145,13 @@ object transfogris extends App {
     
     resultat = rechercheProchain(x,y,routeSize,length,anglei+90,color);
     if(resultat(4)<10 && resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
-      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3));
+      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3),nb-1);
       traceLigne(resultat(2),x,y,length,0x00FFFFFF);
     }
     
     resultat = rechercheProchain(x,y,routeSize,length,anglei-90,color);
     if(resultat(4)<10 && resultat(0)>length && resultat(0)<wrappedImage_ori.height-length && resultat(1)>length && resultat(1)<wrappedImage_ori.width-length){
-      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3));
+      recursion(resultat(0),resultat(1),routeSize,length,resultat(2),resultat(3), nb-1);
       traceLigne(resultat(2),x,y,length,0x00FFFFFF);
     }
     
@@ -172,29 +172,21 @@ object transfogris extends App {
 	var moy = 0;
 	var couleur = 0;
 	
-	var xy = Array(262,72,80,0x00000000);	  
+	var xy = Array(716,111,45,0x00000000);	  
 
 	traceLigne(xy(2),xy(0),xy(1),200,0x0000FF00);
 	
 	//traceLigne(0,xy(0)-50,xy(1),100,0x00FF0000);
   //traceLigne(90,xy(0),xy(1)-50,100,0x00FF0000);
   
-	recursion(xy(0),xy(1),4,8,xy(2),xy(3));
+	try{
+	  recursion(xy(0),xy(1),7,20,xy(2),xy(3),5);
+	}finally {
+    println("--------> Error ignored");
+  }
 	
-	
-
-
 	println("finished");
-	for(row <- 0 until wrappedImage.height-1){
-	  for(col <- 0 until wrappedImage.width-1){
-	    //On enlève le canal alpha sinon scala comprend du signé 
-	    currentPixel=image2D_originale(row)(col)-0xFF000000;
-	    
-	    //image2D_originale(row)(col) = toBW(currentPixel)*0x00010101;
-	    
-	    
-	  }
-	}
+	
 	var outputFile:String="assets/art001.jpg"
 	wrappedImage.saveImage(outputFile)
 }
