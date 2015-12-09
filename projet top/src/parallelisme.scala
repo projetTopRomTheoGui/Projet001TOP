@@ -29,7 +29,11 @@ object parallelisme extends App {
 	  
 	}
 	
-	def chercheParallelisme(x:Int,y:Int){
+	def chercheParallelisme(x:Int,y:Int):Int={
+	  return 0;
+	}
+	
+	def traceLigne(x:Int,y:Int,angle:Int){
 	  
 	}
 	
