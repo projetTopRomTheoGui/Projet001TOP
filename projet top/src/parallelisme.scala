@@ -34,7 +34,7 @@ object parallelisme extends App {
 	}
 	
 	def traceLigne(x:Int,y:Int,angle:Int){
-	  
+	   
 	}
 	
 	def paralleliser(){
