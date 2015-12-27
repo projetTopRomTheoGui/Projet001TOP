@@ -23,22 +23,22 @@ object parall_2 extends App {
 	    }
 	  }
 	  if(x==0 & y==0){
-	    return 0                     //évite les divisions par 0 dans le cas où le point est isolé !
+	    return 0                     //evite les divisions par 0 dans le cas ou le point est isole !
 	  }
 	  if(x==0 & y!=0){
-	    return -1                    // droites verticales (évite les div par zero encore une fois)
+	    return -1                    // droites verticales (evite les div par zero encore une fois)
 	  } else {
-	    return y/x                   // retourne un "coefficient" de droite, que je considère comme un angle
+	    return y/x                   // retourne un "coefficient" de droite, que je considere comme un angle
 	  }
 	}
 	
-	//la fonction droite a pour objectif, à partir de l'image filtrée par Sobel, d'obtenir un tableau "booléen" contenant 1 si le point fait partie d'une droite qui a une parrallele, et 0 sinon
+	//la fonction droite a pour objectif, a partir de l'image filtree par Sobel, d'obtenir un tableau "booleen" contenant 1 si le point fait partie d'une droite qui a une parrallele, et 0 sinon
 	def droite(image2D:Array[Array[Int]]):Array[Array[Int]]={
 	  
 	  var tabval = ofDim[Float](wrappedImage.height,wrappedImage.width)
 	  var tabfin = ofDim[Int](wrappedImage.height,wrappedImage.width)
 	  
-	  //Création de deux tableaux emplis de zeros, l'un stockera les résultats intermédiaires, l'autre le résultat final
+	  //Crï¿½ation de deux tableaux emplis de zeros, l'un stockera les rï¿½sultats intermï¿½diaires, l'autre le rï¿½sultat final
 	  
 	  
 	  for(i<-0 until wrappedImage.height){
@@ -48,7 +48,7 @@ object parall_2 extends App {
 	    }
 	  }
 	  
-	  //remplissage du tableau intermédiaire par les valeurs d'angles trouvées grâce à la fonction éponyme
+	  //remplissage du tableau intermï¿½diaire par les valeurs d'angles trouvï¿½es grï¿½ce ï¿½ la fonction ï¿½ponyme
 	  
 	  for(i<-2 until wrappedImage.height-2){
 	    for(j<-2 until wrappedImage.width-2){
@@ -56,40 +56,40 @@ object parall_2 extends App {
 	    }
 	  }
 	  
-	  // Gros bordel qui va pas être simple à commenter et à comprendre :x
+	  // Gros bordel qui va pas ï¿½tre simple ï¿½ commenter et ï¿½ comprendre :x
 	  
 	  for(row<-10 until wrappedImage.height-10){
 	    for(col<-10 until wrappedImage.width-10){
 	      
-	      //row et col représentent les coordonnées du pixel sur lequel on est entrain de travailler (TABVAL EST PAR RAPPORT AUX ANGLES ! )
+	      //row et col reprï¿½sentent les coordonnï¿½es du pixel sur lequel on est entrain de travailler (TABVAL EST PAR RAPPORT AUX ANGLES ! )
 	      
-	      if (tabval(row)(col)!=0){        //si tabval égal 0, cela veut dire que le pixel considéré est isolé, donc aucun besoin de le traiter (en cas de minuscule tache sur l'image, ou de poussiere)
+	      if (tabval(row)(col)!=0){        //si tabval ï¿½gal 0, cela veut dire que le pixel considï¿½rï¿½ est isolï¿½, donc aucun besoin de le traiter (en cas de minuscule tache sur l'image, ou de poussiere)
 	        
 	        //Cas ou on est dans une droite verticale
 	        
 	        if (tabval(row)(col)== -1){
 	          
-	          //On regarde les 4 pixels a gauche et a droite du pixel considéré, à la recherche d'un pixel similaire
+	          //On regarde les 4 pixels a gauche et a droite du pixel considï¿½rï¿½, ï¿½ la recherche d'un pixel similaire
 	          /*for (k<- 1 to 10){
 	            if (tabval(row)(Math.min(col+k, wrappedImage.width -3))== -1 | tabval(row)(Math.max(2,col-k))== -1){
 	              tabfin(row)(col)=1
 	            }
 	          }*/
 	          
-	        // le else, bien plus complexe , a pour objectif de regarder dans un tableau de taille 9x9 (potentiellement a réduire) autour d'un pixel s'il y en a un ayant le même angle, MAIS n'étant pas sur la même droite
+	        // le else, bien plus complexe , a pour objectif de regarder dans un tableau de taille 9x9 (potentiellement a rï¿½duire) autour d'un pixel s'il y en a un ayant le mï¿½me angle, MAIS n'ï¿½tant pas sur la mï¿½me droite
 	        } else {
 	          for(a<- -10 to 10){
 	            for(b<- -10 to 10){
-	              //d'abord, je vérifie que je ne regarde pas le pixel sur lequel je suis ou ses voisins immédiats, et que je ne fais pas de débardement de l'image.
+	              //d'abord, je vï¿½rifie que je ne regarde pas le pixel sur lequel je suis ou ses voisins immï¿½diats, et que je ne fais pas de dï¿½bardement de l'image.
 	              if (Math.abs(a)>6 & Math.abs(b)>6){
 	                
-	                //je définie le pourcentage d'acceptation d'erreur phi
+	                //je dï¿½finie le pourcentage d'acceptation d'erreur phi
 	                var phi = 0.25
-	                //premiere vérification  : l'angle
+	                //premiere vï¿½rification  : l'angle
 	                if (tabval(row+a)(col+b)*(1.25) > tabval(row)(col) & tabval(row+a)(row+b)*(0.75) < tabval(row)(col) ){
 	                  
-	                  //deuxieme vérification : n'appartient pas à la même droite :
-	                  //explication : je dois traiter le cas b=0 (car je divise par b dans les autres), c'est à dire quand on est au dessus et en desous du pixel : comme on a déjà traité les droites verticales, si l'on détecte un pixel respectant les conditions à cette position, c'est qu'il appartient a une droite parallèle =D
+	                  //deuxieme vï¿½rification : n'appartient pas ï¿½ la mï¿½me droite :
+	                  //explication : je dois traiter le cas b=0 (car je divise par b dans les autres), c'est ï¿½ dire quand on est au dessus et en desous du pixel : comme on a dï¿½jï¿½ traitï¿½ les droites verticales, si l'on dï¿½tecte un pixel respectant les conditions ï¿½ cette position, c'est qu'il appartient a une droite parallï¿½le =D
 	                  if(b==0){
 	                    tabfin(row)(col)=1
 	                  } else if(Math.abs(a/b) > tabval(row+a)(col+b)*1.15 | Math.abs(a/b) < tabval(row+a)(col+b)*0.85){
@@ -98,7 +98,7 @@ object parall_2 extends App {
 	                }
 	              }
 	              
-	              //crochets de lecture de la zone autour du pixel étudié
+	              //crochets de lecture de la zone autour du pixel ï¿½tudiï¿½
 	            }
 	          }
 	          
@@ -117,7 +117,7 @@ object parall_2 extends App {
 	  return tabfin
 	}
 	
-	//on applique la fonction, et ensuite on modifie Image2D pixel par pixel pour pouvoir créer une nouvelle image
+	//on applique la fonction, et ensuite on modifie Image2D pixel par pixel pour pouvoir crï¿½er une nouvelle image
 	var tableau=droite(image2D)
 	for(i<- 0 to wrappedImage.height-1){
 	  for(j<- 0 to wrappedImage.width-1){

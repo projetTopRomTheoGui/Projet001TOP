@@ -52,7 +52,7 @@ object transfogris extends App {
   }*/
   
     // obtenir l'image dans un tableau 2D
-	var filename : String = "assets/3.jpg"
+	var filename : String = "assets/flou.jpg"
 	var wrappedImage : ImageWrapper = new ImageWrapper(filename);
 	var image2D : Array[Array[Int]] = wrappedImage.getImage();
 
@@ -124,6 +124,6 @@ object transfogris extends App {
 	return image2
 	}
 	image2D=Sobel(image2D)
-	var outputFile:String="assets/testpar4.jpg"
+	var outputFile:String="assets/sobel.jpg"
 	wrappedImage.saveImage(outputFile)
 }
