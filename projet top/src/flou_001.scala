@@ -24,14 +24,29 @@ object flou_001 extends App {
 	}
   
 	//La moyenne des couleurs sur le cercle de taille donnee
-  //def moyenne
+  def moyenne(size:Int,x:Int,y:Int,image:Array[Array[Int]]):Int={
+    
+    var moyenne = 0;
+    for(ix<- x-size/2 to x+size/2){
+      for(iy<- y-size/2 to y+size/2){
+        moyenne += lirePixel(ix,iy,image);
+      }
+    }
+    
+    moyenne = moyenne/(size*size);
+    
+    return moyenne;
+  }
   
   def flouter(input:Array[Array[Int]],output:Array[Array[Int]]){
     
-    
+    for(x<-0 to input.length){
+      for(y<-0 to input(0).length){
+        output(y)(x) = moyenne(5,x,y,input);
+      }
+    }
     
   }
-  
   
   
   
