@@ -50,18 +50,25 @@ object main extends App {
   def moyenne(size:Int,x:Int,y:Int,image:Array[Array[Int]]):Int={
     
     var moyenne:Long = 0;
+    var nb = 0;
+    var couleur= 0;
+    var coef = 1;
+    
     for(ix<- x-size/2 to x+size/2){
       for(iy<- y-size/2 to y+size/2){
-        moyenne += lirePixel(ix,iy,image);
+        couleur = lirePixel(ix,iy,image);
+        coef = 1+(Math.pow(255-couleur,2)).toInt;
+        moyenne += coef*couleur;
+        nb += coef;
       }
     }
     
     //Inconnu : depassement
-    if(moyenne>size*size*255){
+    if(moyenne>nb*255){
       return 255;
     }
     
-    moyenne = moyenne/(size*size);
+    moyenne = moyenne/nb;
     
     return moyenne.toInt;
   }
@@ -314,7 +321,7 @@ object main extends App {
   //// MAIN ////
  
   //Entree image
-	var filename : String = "assets/Images/ImagesTests/1.jpg"
+	var filename : String = "assets/Images/ImagesTests/8.jpg"
 	var wrappedInputImage : ImageWrapper = new ImageWrapper(filename);
 	var inputImage : Array[Array[Int]] = wrappedInputImage.getImage();
 	//Future image de sortie
