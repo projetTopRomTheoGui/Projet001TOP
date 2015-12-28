@@ -57,7 +57,7 @@ object main extends App {
     for(ix<- x-size/2 to x+size/2){
       for(iy<- y-size/2 to y+size/2){
         couleur = lirePixel(ix,iy,image);
-        coef = 1+(Math.pow(255-couleur,2)).toInt;
+        coef = 1;
         moyenne += coef*couleur;
         nb += coef;
       }
