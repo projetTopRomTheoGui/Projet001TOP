@@ -297,78 +297,8 @@ object main extends App {
 	  return resultat;
 	}
 	
-	
-	
-	/*
-	def chercherpara_recu(image:Array[Array[Int]],output:Array[Array[Int]],x:Int,y:Int,angleOri:Int,taille_recherche:Int,taille_route:Int){
-	  
-	  var newX = 0;
-	  var newY = 0;
-	  var ligne = false;
-	  var parallele = Array(0,0,0);
-	  var new_taille_route = 0;
-	  var finded = false;
-	  
-	  
-	  println(x+" "+y+" "+angleOri);
-	  
-	  //On cherche la suite
-    for(angle<- angleOri-40 to angleOri+40 by 10){
-      
-      newX = x + (taille_recherche*Math.cos(angle*6.283/360)).toInt;
-      newY = y + (taille_recherche*Math.sin(angle*6.283/360)).toInt;
-       
-      
-      //Si le pixel destination est noir
-      if(lirePixel(newX,newY,image)<100){
-        
-        ligne = true;
-        
-        //On regarde si on a une ligne continue
-        for(taille<- 1 to taille_recherche){
-		      
-		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
-		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
-		       
-		      if(lirePixel(newX,newY,image)>100){
-		        ligne = false;
-		      }
-		        
-		    }
-        
-        
-        
-        if(ligne == true && finded == false){
-          
-          parallele = recherche_parallele(image,x,y,angle,taille_recherche,taille_route+5);
-          
-          println(angle+" "+(taille_route+5));
-          
-          if(parallele(0)==1){
-            finded = true;
-            
-            tracerligne(output,((x+newX)/2).toInt,((y+newY)/2).toInt,10,angleOri+180,0xFFFF0000);
-            
-            new_taille_route = (Math.sqrt(Math.pow(x-parallele(1),2)+Math.pow(y-parallele(2),2))).toInt;
-            chercherpara_recu(image,output,newX,newY,angle,taille_recherche,new_taille_route);
-            chercherpara_recu(image,output,newX,newY,angle+90,taille_recherche,taille_route);
-            chercherpara_recu(image,output,newX,y,angle-90,taille_recherche,taille_route);
-            
-          }
-        }
-      
-      }
-        
-    }
-    
-    return;
-	  
-	  
-	}
-	*/
-	
 	//Trouver la plus grande route droite pour démarrer
-	def chercherpara(image:Array[Array[Int]],output:Array[Array[Int]]){
+	def plusLongueRoute(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
 	  blanche(output);
 	  
@@ -421,15 +351,16 @@ object main extends App {
       		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
       		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
       		        
-      		    
-  		          parallele = recherche_parallele(image,x,y,angle,taille,taille_recherche*2);
-  		          if(parallele(0)==0){
-  		            
-  		            ligne = false;
-  		            
-  		          }else{
-  		            parallele_end = parallele;
-  		          }
+      		      if(taille>Math.max(1,max-1)){
+    		          parallele = recherche_parallele(image,x,y,angle,taille,taille_recherche*2);
+    		          if(parallele(0)==0){
+    		            
+    		            ligne = false;
+    		            
+    		          }else{
+    		            parallele_end = parallele;
+    		          }
+      		      }
     		        
   		        
   		        }
@@ -452,6 +383,18 @@ object main extends App {
 	  
 	  tracerligne(output,parallele_max(0),parallele_max(1),parallele_max(2),parallele_max(3),0xFF00FF00);
 	  
+	  var sX = parallele_max(0);
+	  var sY = parallele_max(1);
+	  var sA = parallele_max(2);
+	  
+	  var eX = sX + (parallele_max(3)*Math.cos(sA*6.283/360)).toInt;
+	  var eY = sY + (parallele_max(3)*Math.sin(sA*6.283/360)).toInt;
+	  var eA = sA+180;	  
+	  
+	  println("\n\nTrace de la route... (5-routes.jpg)")
+	  
+	  //recursion(image,output,sX,sY,sA);
+	  //recursion(image,output,eX,eY,eA);
 	  
 	}
 	
@@ -462,62 +405,52 @@ object main extends App {
   //// MAIN ////
  
   //Entree image
-	var filename : String = "assets/Images/ImagesTests/1.jpg"
+	var filename : String = "assets/Images/ImagesTests/all.jpg"
 	var wrappedInputImage : ImageWrapper = new ImageWrapper(filename);
 	var inputImage : Array[Array[Int]] = wrappedInputImage.getImage();
 	//Future image de sortie
 	var wrappedOutputImage : ImageWrapper = new ImageWrapper(filename);
 	var outputImage : Array[Array[Int]] = wrappedOutputImage.getImage();
 
-	var outputFile:String="assets/present/0_init.jpg"
+	println("Initialisation (0-init.jpg)");
+	
+	var outputFile:String="assets/present/0-init.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
-	println("Flou par 4...");
+	println("\n\nFlou par 4... (1-flou4.jpg)");
 	flouter(inputImage,outputImage,4);
 	 
-	outputFile ="assets/present/1_flou.jpg"
+	outputFile ="assets/present/1_flou4.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
 		
-	println("\n\nGarder la route...");
+	println("\n\nGarder la route... (2-route.jpg)");
 	desaturate(outputImage);
 	 
-	outputFile ="assets/present/1b_desature.jpg"
+	outputFile ="assets/present/2-route.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
 	inputImage = copy(outputImage);
 	
-	println("\n\nAméliorer les contours de la route...");
+	println("\n\nAméliorer les contours de la route... (3-flou3.jpg)");
 	flouter(inputImage,outputImage,3);
 	 
-	outputFile ="assets/present/1c_flou.jpg"
+	outputFile ="assets/present/3-flou3.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
-	println("\n\nDétecter les bords de la route avec Sobel...");
+	println("\n\nDétecter les bords de la route avec Sobel... (4-sobel.jpg)");
 	Sobel(outputImage);
 	
-	outputFile ="assets/present/2_sobel.jpg"
+	outputFile ="assets/present/4-sobel.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
 	inputImage = copy(outputImage);
-	
-	/*
-	println("Flouter légèrement...");
-	flouter(inputImage,outputImage,2);
-
-	outputFile ="assets/present/3_flou.jpg"
-	wrappedOutputImage.saveImage(outputFile)
-	
-	inputImage = copy(outputImage);
-	*/
 	
 	println("\n\nDétecter la meilleure route de départ...");
-	chercherpara(inputImage,outputImage);
-
+	plusLongueRoute(inputImage,outputImage);
 	
-	
-	println("\n\nterminé");
-	
-	outputFile ="assets/present/4_fin.jpg"
+	outputFile ="assets/present/5-routes.jpg"
 	wrappedOutputImage.saveImage(outputFile)
+	
+	println("\n\nRoutes détectées.");
 }
