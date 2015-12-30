@@ -401,11 +401,89 @@ object main extends App {
 	//// FIN PARALLELISME ////
   
   
+	
+	//// ANCIEN CODE PARA ////
+	
+	def chercherpara(image:Array[Array[Int]],output:Array[Array[Int]]){
+	  
+	  blanche(output);
+	  
+	  var taille_recherche = 10;
+	  var newX = 0;
+	  var newY = 0;
+	  var ligne = false;
+	  var parallele = Array(0,0,0);
+	  
+	  var avance = 0;
+	  println("0% .                                                . 100%");
+	  print("   |");	    
+	    
+	  for(x <- taille_recherche to image(0).length-1-taille_recherche){
+	    
+	    if(avance!=(x*50/image(0).length).toInt){
+	      avance = (x*50/image(0).length).toInt;
+	      print("|")
+	    }
+	    
+	    
+		  for(y <- taille_recherche to image.length-1-taille_recherche){
+		    
+		    if(lirePixel(x,y,image)<100){
+		      
+  		    //Pour chaque pixel on regarde dans les 5 pixels environnants
+  		    for(angle<- 0 to 360 by 10){
+  		      
+  		      newX = x + (taille_recherche*Math.cos(angle*6.283/360)).toInt;
+  		      newY = y + (taille_recherche*Math.sin(angle*6.283/360)).toInt;
+  		       
+  		      //Si le pixel destination est noir
+  		      if(lirePixel(newX,newY,image)<100){
+  		        
+  		        ligne = true;
+  		        
+  		        //On regarde si on a une ligne continue
+  		        for(taille<- 1 to taille_recherche){
+      		      
+      		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
+      		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
+      		       
+      		      if(lirePixel(newX,newY,image)>100){
+      		        ligne = false;
+      		      }
+      		        
+      		    }
+  		        
+  		        if(ligne == true){
+  		          
+  		          parallele = recherche_parallele(image,x,y,angle,taille_recherche,taille_recherche*2);
+  		          if(parallele(0)==1){
+  		            tracerligne(output,((x+parallele(1))/2).toInt,((y+parallele(2))/2).toInt,taille_recherche,angle,0xFFFF0000);
+  		          }
+  		        }
+  		      
+  		      }
+  		        
+  		    }
+		    
+		    }
+		    
+		  }
+	  }
+	  
+	  println("");
+	  
+	  
+	}
+	
+	//// FIN ANCIEN CODE PARA ////
+	
+	
+	
   
   //// MAIN ////
  
   //Entree image
-	var filename : String = "assets/Images/ImagesTests/all.jpg"
+	var filename : String = "assets/Images/ImagesTests/1.jpg"
 	var wrappedInputImage : ImageWrapper = new ImageWrapper(filename);
 	var inputImage : Array[Array[Int]] = wrappedInputImage.getImage();
 	//Future image de sortie
@@ -448,6 +526,11 @@ object main extends App {
 	
 	println("\n\nDétecter la meilleure route de départ...");
 	plusLongueRoute(inputImage,outputImage);
+	
+	/*
+	 * println("\n\nDétecter les routes par parallelisme...");
+	chercherpara(inputImage,outputImage);
+  */
 	
 	outputFile ="assets/present/5-routes.jpg"
 	wrappedOutputImage.saveImage(outputFile)
