@@ -28,21 +28,41 @@ object main extends App {
 	  
 	}
 	
-	//Retourne du blanc si on est trop saturz
-	def desaturation(color:Int):Int={
+	
+	//// DESATURATION ////
+	
+	def desature(colorInput:Int):Int={
 	  
-	  var seuil = 20;
+	  var color = colorInput - 0xFF000000;
 	  
 	  var r = (color>>16)%256;
 	  var v = (color>>8)%256;
 	  var b = color%256;
-	
-	  if(Math.abs(r-v)>seuil || Math.abs(r-b)>seuil || Math.abs(v-v)>seuil){
-	    return 255;
+	  
+	  var moy = (r+v+b)/3;
+	  
+	  if(moy>80){
+	    return 0xFFFFFFFF;
 	  }
-	  return (r+v+b)/3;
+	  return 0xFF000000;
+
+	}
+	
+	def desaturate(src:Array[Array[Int]]){
+	  
+	  
+	  for(i<- 0 until src.length){
+      for (j<-0 until src(0).length){
+        src(i)(j)=desature(src(i)(j))
+      }
+    }
 	  
 	}
+	
+	//// FIN DESATURATION ////
+	
+	
+	
 	
 	//// FLOUTAGE /////
   
@@ -50,14 +70,14 @@ object main extends App {
   def moyenne(size:Int,x:Int,y:Int,image:Array[Array[Int]]):Int={
     
     var moyenne:Long = 0;
-    var nb = 0;
+    var nb:Long = 0;
     var couleur= 0;
     var coef = 1;
     
     for(ix<- x-size/2 to x+size/2){
       for(iy<- y-size/2 to y+size/2){
         couleur = lirePixel(ix,iy,image);
-        coef = 1;
+        coef = 1+(Math.pow(3,(255-couleur)/30)).toInt;
         moyenne += coef*couleur;
         nb += coef;
       }
@@ -76,11 +96,23 @@ object main extends App {
   
   def flouter(input:Array[Array[Int]],output:Array[Array[Int]],size:Int){
     
+    var avance = 0;
+	  println("0% .                                                . 100%");
+	  print("   |");
+    
     for(x<-0 to output(0).length-1){
+      
+      if(avance!=(x*50/output(0).length).toInt){
+	      avance = (x*50/output(0).length).toInt;
+	      print("|")
+	    }
+      
       for(y<-0 to output.length-1){
         output(y)(x) = getBWcolor(moyenne(size,x,y,input));
       }
     }
+    
+    println("");
     
   }
   
@@ -151,30 +183,42 @@ object main extends App {
 	  var gradX=0
 	  var gradY=0
 	  var grad=0
-	  for(row <- 2 until output.length-3){
-		  for(col <- 2 until output(0).length-3){
-			  mgg=inputImage(row)(col-2)%256
-			  hhm=inputImage(row-2)(col)%256
-			  mdd=inputImage(row)(col+2)%256
-			  bbm=inputImage(row+2)(col)%256
-			  hg=inputImage(row-1)(col-1)%256
-			  mg=inputImage(row)(col-1)%256
-			  bg=inputImage(row+1)(col-1)%256
-			  hm=inputImage(row-1)(col)%256
-			  bm=inputImage(row+1)(col)%256
-			  hd=inputImage(row-1)(col+1)%256
-			  md=inputImage(row)(col+1)%256
-			  bd=inputImage(row+1)(col+1)%256
-			  gradX=hd+2*md+bd-hg-2*mg-bg+(0.5*(mdd-mgg)).toInt
-			  gradY=hg+2*hm+hd-bg-2*bm-bd+(0.5*(hhm-bbm)).toInt
-			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
-			  grad=255-grad
-			  if (grad>140){
-			    grad=255
-			  } else {
-			    grad=0
-			  }
-			  output(row)(col)=grad+grad*256+grad*256*256
+	  for(row <- 0 until output.length){
+		  for(col <- 0 until output(0).length){
+		    
+		    //Enlever les bords
+		    if(row<4 || row>=output.length-3 || col<4 || col>=output(0).length-3){
+		       output(row)(col)=0xFFFFFF;
+		    }else{
+  		    
+  		    
+  			  mgg=inputImage(row)(col-2)%256
+  			  hhm=inputImage(row-2)(col)%256
+  			  mdd=inputImage(row)(col+2)%256
+  			  bbm=inputImage(row+2)(col)%256
+  			  hg=inputImage(row-1)(col-1)%256
+  			  mg=inputImage(row)(col-1)%256
+  			  bg=inputImage(row+1)(col-1)%256
+  			  hm=inputImage(row-1)(col)%256
+  			  bm=inputImage(row+1)(col)%256
+  			  hd=inputImage(row-1)(col+1)%256
+  			  md=inputImage(row)(col+1)%256
+  			  bd=inputImage(row+1)(col+1)%256
+  			  gradX=hd+2*md+bd-hg-2*mg-bg+(0.5*(mdd-mgg)).toInt
+  			  gradY=hg+2*hm+hd-bg-2*bm-bd+(0.5*(hhm-bbm)).toInt
+  			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
+  			  grad=255-grad
+  			  if (grad>140){
+  			    grad=255
+  			  } else {
+  			    grad=0
+  			  }
+  			  
+  			  output(row)(col)=grad+grad*256+grad*256*256
+  			  
+			  
+		    }
+			  
 			  //Console.err.println(gradX+" "+gradY+" "+grad+" "+image(row)(col)%256)
 		  }
 	  }
@@ -205,7 +249,7 @@ object main extends App {
 	  
 	}
 	
-	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille_recherche:Int):Array[Int]={
+	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille_recherche:Int,tailleroutemax:Int):Array[Int]={
 	  
 	  var newXdist = 0;
 	  var newYdist = 0;
@@ -216,7 +260,7 @@ object main extends App {
 	  var blanc = 0;
 	  
 	  //On avance perpendiculairement
-	  for(distance <- 2 to taille_recherche*2){
+	  for(distance <- 2 to tailleroutemax){
 	    
 	    newXdist = x + (distance*Math.cos((angle+90)*6.283/360)).toInt;
 	    newYdist = y + (distance*Math.sin((angle+90)*6.283/360)).toInt;
@@ -253,6 +297,77 @@ object main extends App {
 	  return resultat;
 	}
 	
+	
+	
+	/*
+	def chercherpara_recu(image:Array[Array[Int]],output:Array[Array[Int]],x:Int,y:Int,angleOri:Int,taille_recherche:Int,taille_route:Int){
+	  
+	  var newX = 0;
+	  var newY = 0;
+	  var ligne = false;
+	  var parallele = Array(0,0,0);
+	  var new_taille_route = 0;
+	  var finded = false;
+	  
+	  
+	  println(x+" "+y+" "+angleOri);
+	  
+	  //On cherche la suite
+    for(angle<- angleOri-40 to angleOri+40 by 10){
+      
+      newX = x + (taille_recherche*Math.cos(angle*6.283/360)).toInt;
+      newY = y + (taille_recherche*Math.sin(angle*6.283/360)).toInt;
+       
+      
+      //Si le pixel destination est noir
+      if(lirePixel(newX,newY,image)<100){
+        
+        ligne = true;
+        
+        //On regarde si on a une ligne continue
+        for(taille<- 1 to taille_recherche){
+		      
+		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
+		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
+		       
+		      if(lirePixel(newX,newY,image)>100){
+		        ligne = false;
+		      }
+		        
+		    }
+        
+        
+        
+        if(ligne == true && finded == false){
+          
+          parallele = recherche_parallele(image,x,y,angle,taille_recherche,taille_route+5);
+          
+          println(angle+" "+(taille_route+5));
+          
+          if(parallele(0)==1){
+            finded = true;
+            
+            tracerligne(output,((x+newX)/2).toInt,((y+newY)/2).toInt,10,angleOri+180,0xFFFF0000);
+            
+            new_taille_route = (Math.sqrt(Math.pow(x-parallele(1),2)+Math.pow(y-parallele(2),2))).toInt;
+            chercherpara_recu(image,output,newX,newY,angle,taille_recherche,new_taille_route);
+            chercherpara_recu(image,output,newX,newY,angle+90,taille_recherche,taille_route);
+            chercherpara_recu(image,output,newX,y,angle-90,taille_recherche,taille_route);
+            
+          }
+        }
+      
+      }
+        
+    }
+    
+    return;
+	  
+	  
+	}
+	*/
+	
+	//Trouver la plus grande route droite pour démarrer
 	def chercherpara(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
 	  blanche(output);
@@ -262,17 +377,29 @@ object main extends App {
 	  var newY = 0;
 	  var ligne = false;
 	  var parallele = Array(0,0,0);
+	  var parallele_end = Array(0,0,0);
+	  var parallele_max = Array(0,0,0,0);
+	  var taille_route = 0;
+	  var taille = 0;
+	  var max = 0;
 	  
-	  for(x <- taille_recherche to image(0).length-1-taille_recherche){
+	  var avance = 0;
+	  println("0% .                                                . 100%");
+	  print("   |");
+	  
+	  for(x <- taille_recherche to image(0).length-1-taille_recherche by 3){
 	    
-	    println((x*100/image(0).length)+"%");
+	    if(avance!=(x*50/image(0).length).toInt){
+	      avance = (x*50/image(0).length).toInt;
+	      print("|")
+	    }
 	    
-		  for(y <- taille_recherche to image.length-1-taille_recherche){
+		  for(y <- taille_recherche to image.length-1-taille_recherche by 3){
 		    
 		    if(lirePixel(x,y,image)<100){
 		      
-  		    //Pour chaque pixel on regarde dans les 5 pixels environnants
-  		    for(angle<- 0 to 360 by 10){
+  		    //Pour chaque pixel on regarde dans les pixels environnants
+  		    for(angle<- 0 to 170 by 10){
   		      
   		      newX = x + (taille_recherche*Math.cos(angle*6.283/360)).toInt;
   		      newY = y + (taille_recherche*Math.sin(angle*6.283/360)).toInt;
@@ -282,24 +409,34 @@ object main extends App {
   		        
   		        ligne = true;
   		        
+  		        taille = 1;
+  		        newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
+    		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
+    		      
   		        //On regarde si on a une ligne continue
-  		        for(taille<- 1 to taille_recherche){
+  		        while(lirePixel(newX,newY,image)<100 && ligne==true){
+  		          
+  		          taille = taille + 1;
       		      
       		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
       		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
-      		       
-      		      if(lirePixel(newX,newY,image)>100){
-      		        ligne = false;
-      		      }
       		        
-      		    }
-  		        
-  		        if(ligne == true){
-  		          
-  		          parallele = recherche_parallele(image,x,y,angle,taille_recherche);
-  		          if(parallele(0)==1){
-  		            tracerligne(output,((x+parallele(1))/2).toInt,((y+parallele(2))/2).toInt,taille_recherche,angle,0xFFFF0000);
+      		    
+  		          parallele = recherche_parallele(image,x,y,angle,taille,taille_recherche*2);
+  		          if(parallele(0)==0){
+  		            
+  		            ligne = false;
+  		            
+  		          }else{
+  		            parallele_end = parallele;
   		          }
+    		        
+  		        
+  		        }
+  		        
+  		        if(taille>max){
+  		          max = taille;
+  		          parallele_max = Array(((x+parallele_end(1))/2).toInt,((y+parallele_end(2))/2).toInt,taille,angle);
   		        }
   		      
   		      }
@@ -311,6 +448,10 @@ object main extends App {
 		  }
 	  }
 	  
+	  println("");
+	  
+	  tracerligne(output,parallele_max(0),parallele_max(1),parallele_max(2),parallele_max(3),0xFF00FF00);
+	  
 	  
 	}
 	
@@ -321,7 +462,7 @@ object main extends App {
   //// MAIN ////
  
   //Entree image
-	var filename : String = "assets/Images/ImagesTests/8.jpg"
+	var filename : String = "assets/Images/ImagesTests/1.jpg"
 	var wrappedInputImage : ImageWrapper = new ImageWrapper(filename);
 	var inputImage : Array[Array[Int]] = wrappedInputImage.getImage();
 	//Future image de sortie
@@ -331,13 +472,28 @@ object main extends App {
 	var outputFile:String="assets/present/0_init.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
-	println("Flouter...");
-	flouter(inputImage,outputImage,6);
+	println("Flou par 4...");
+	flouter(inputImage,outputImage,4);
 	 
 	outputFile ="assets/present/1_flou.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
-	println("Sobel...");
+		
+	println("\n\nGarder la route...");
+	desaturate(outputImage);
+	 
+	outputFile ="assets/present/1b_desature.jpg"
+	wrappedOutputImage.saveImage(outputFile)
+	
+	inputImage = copy(outputImage);
+	
+	println("\n\nAméliorer les contours de la route...");
+	flouter(inputImage,outputImage,3);
+	 
+	outputFile ="assets/present/1c_flou.jpg"
+	wrappedOutputImage.saveImage(outputFile)
+	
+	println("\n\nDétecter les bords de la route avec Sobel...");
 	Sobel(outputImage);
 	
 	outputFile ="assets/present/2_sobel.jpg"
@@ -345,6 +501,7 @@ object main extends App {
 	
 	inputImage = copy(outputImage);
 	
+	/*
 	println("Flouter légèrement...");
 	flouter(inputImage,outputImage,2);
 
@@ -352,13 +509,14 @@ object main extends App {
 	wrappedOutputImage.saveImage(outputFile)
 	
 	inputImage = copy(outputImage);
+	*/
 	
-	println("Parallelismes");
+	println("\n\nDétecter la meilleure route de départ...");
 	chercherpara(inputImage,outputImage);
 
 	
 	
-	println("terminé");
+	println("\n\nterminé");
 	
 	outputFile ="assets/present/4_fin.jpg"
 	wrappedOutputImage.saveImage(outputFile)
