@@ -1,8 +1,9 @@
 import com.tncy.top.image.ImageWrapper;
 object main extends App {
   
-  
+  ///////////////////
   //// FONCTIONS ////
+  ///////////////////
   
   //Reconstruit le pixel
   def getBWcolor(bw:Int):Int={
@@ -28,25 +29,81 @@ object main extends App {
 	  
 	}
 	
-	
-	//// DESATURATION ////
-	
+	//Blanc ou noir selon seuil de 80
 	def desature(colorInput:Int):Int={
 	  
-	  var color = colorInput - 0xFF000000;
-	  
-	  var r = (color>>16)%256;
-	  var v = (color>>8)%256;
-	  var b = color%256;
-	  
-	  var moy = (r+v+b)/3;
-	  
-	  if(moy>80){
+	  if(toBW(colorInput)>80){
 	    return 0xFFFFFFFF;
 	  }
 	  return 0xFF000000;
 
 	}
+	
+	   //fonction de copie de tableaux
+  def copy(src:Array[Array[Int]]):Array[Array[Int]]={
+    var dst = new Array[Array[Int]](src.length)
+    for(i<- 0 until src.length){
+      dst(i)= new Array[Int](src(0).length)
+      for (j<-0 until src(0).length){
+        dst(i)(j)=src(i)(j)
+      }
+    }
+    return dst
+  }
+  
+  //Créer une image blanche
+  def blanche(src:Array[Array[Int]]){
+    
+    for(i<- 0 until src.length){
+      for (j<-0 until src(0).length){
+        src(i)(j)=0xFFFFFFFF;
+      }
+    }
+  
+  }
+	
+	 //fonction de transformation de l'image en gris
+	def toGrey(image2D:Array[Array[Int]]):Array[Array[Int]]={
+		var image=image2D;
+		var currentPixel=0
+	  for(row <- 2 until image2D.length){
+		  for(col <- 2 until image2D(0).length){
+				//On enlève le canal alpha sinon scala comprend du signé 
+				currentPixel=image2D(row)(col)-0xFF000000
+				currentPixel=toBW(currentPixel)
+
+				image(row)(col)=currentPixel
+			}
+		}
+		return image
+	}
+	
+	//Tracer une ligne sur l'image
+	def tracerligne(output:Array[Array[Int]],x:Int,y:Int,size:Int,angle:Int,color:Long){
+	  
+	  var newX = 0;
+	  var newY = 0;
+	  
+	  for(s<- 0 to size){
+      		      
+      newX = x + (s*Math.cos(angle*6.283/360)).toInt;
+      newY = y + (s*Math.sin(angle*6.283/360)).toInt;
+       
+	    if(newX>=0 && newX<output(0).length && newY>=0 && newY<output.length){
+        output(newY)(newX) = color.toInt;
+      }
+        
+    }
+	  
+	}
+	
+	
+	
+	
+	
+	/////////////////////////////
+	//// ENLEVER LE PAS NOIR ////
+	/////////////////////////////
 	
 	def desaturate(src:Array[Array[Int]]){
 	  
@@ -59,12 +116,15 @@ object main extends App {
 	  
 	}
 	
-	//// FIN DESATURATION ////
+	/////////////////////////////////
+	//// FIN ENLEVER LE PAS NOIR ////
+	/////////////////////////////////
 	
 	
 	
-	
-	//// FLOUTAGE /////
+	///////////////////////////////////
+	//// FLOUTAGE ET SURIMPRESSION/////
+	///////////////////////////////////
   
 	//La moyenne des couleurs sur le cercle de taille donnee
   def moyenne(size:Int,x:Int,y:Int,image:Array[Array[Int]]):Int={
@@ -94,7 +154,7 @@ object main extends App {
   }
   
   
-  def flouter(input:Array[Array[Int]],output:Array[Array[Int]],size:Int){
+  def flouterSurimpression(input:Array[Array[Int]],output:Array[Array[Int]],size:Int){
     
     var avance = 0;
 	  println("0% .                                                . 100%");
@@ -116,51 +176,17 @@ object main extends App {
     
   }
   
-  //// FIN FLOUTAGE ////
+  ///////////////////////////////////////
+  //// FIN FLOUTAGE ET SURIMPRESSION ////
+  ///////////////////////////////////////
   
   
   
+  
+  ///////////////
   //// SOBEL ////
+  ///////////////
   
-  
-   //fonction de copie de tableaux
-  def copy(src:Array[Array[Int]]):Array[Array[Int]]={
-    var dst = new Array[Array[Int]](src.length)
-    for(i<- 0 until src.length){
-      dst(i)= new Array[Int](src(0).length)
-      for (j<-0 until src(0).length){
-        dst(i)(j)=src(i)(j)
-      }
-    }
-    return dst
-  }
-  
-  //Créer une image blanche
-  def blanche(src:Array[Array[Int]]){
-    
-    for(i<- 0 until src.length){
-      for (j<-0 until src(0).length){
-        src(i)(j)=0xFFFFFFFF;
-      }
-    }
-  
-  }
-  
- //fonction de transformation de l'image en gris
-	def toGrey(image2D:Array[Array[Int]]):Array[Array[Int]]={
-		var image=image2D;
-		var currentPixel=0
-	  for(row <- 2 until image2D.length){
-		  for(col <- 2 until image2D(0).length){
-				//On enlève le canal alpha sinon scala comprend du signé 
-				currentPixel=image2D(row)(col)-0xFF000000
-				currentPixel=toBW(currentPixel)
-
-				image(row)(col)=currentPixel
-			}
-		}
-		return image
-	}
   
   //algorithme de Sobel
 	def Sobel(output:Array[Array[Int]]):Array[Array[Int]]={
@@ -225,30 +251,19 @@ object main extends App {
 	  return output
 	}
 	
-	
+	///////////////////
 	//// FIN SOBEL ////
-  
+  ///////////////////
 	
+	
+	
+	
+	
+	//////////////////////
 	//// PARALLELISME ////
+	//////////////////////
 	
-	def tracerligne(output:Array[Array[Int]],x:Int,y:Int,size:Int,angle:Int,color:Long){
-	  
-	  var newX = 0;
-	  var newY = 0;
-	  
-	  for(s<- 0 to size){
-      		      
-      newX = x + (s*Math.cos(angle*6.283/360)).toInt;
-      newY = y + (s*Math.sin(angle*6.283/360)).toInt;
-       
-	    if(newX>=0 && newX<output(0).length && newY>=0 && newY<output.length){
-        output(newY)(newX) = color.toInt;
-      }
-        
-    }
-	  
-	}
-	
+	//Trouver la parallele à la ligne courrante
 	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille_recherche:Int,tailleroutemax:Int):Array[Int]={
 	  
 	  var newXdist = 0;
@@ -393,18 +408,22 @@ object main extends App {
 	  
 	  println("\n\nTrace de la route... (5-routes.jpg)")
 	  
-	  //recursion(image,output,sX,sY,sA);
-	  //recursion(image,output,eX,eY,eA);
-	  
 	}
 	
+	//////////////////////////
 	//// FIN PARALLELISME ////
-  
+  //////////////////////////
+	
   
 	
-	//// ANCIEN CODE PARA ////
 	
-	def chercherpara(image:Array[Array[Int]],output:Array[Array[Int]]){
+	
+	
+	///////////////////////////////////////////////
+	//// RETROUVER LES ROUTES PAR PARALLELISME ////
+	///////////////////////////////////////////////
+	
+	def retrouverLesRoutes(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
 	  blanche(output);
 	  
@@ -469,13 +488,19 @@ object main extends App {
 		    
 		  }
 	  }
-	  
-	  println("");
-	  
+	  	  
 	  
 	}
 	
-	//// FIN ANCIEN CODE PARA ////
+	
+	///////////////////////////////////////////////////
+	//// FIN RETROUVER LES ROUTES PAR PARALLELISME ////
+	///////////////////////////////////////////////////
+	
+	
+	
+	
+	
 	
 	
 	
@@ -496,7 +521,7 @@ object main extends App {
 	wrappedOutputImage.saveImage(outputFile)
 	
 	println("\n\nFlou par 4... (1-flou4.jpg)");
-	flouter(inputImage,outputImage,4);
+	flouterSurimpression(inputImage,outputImage,4);
 	 
 	outputFile ="assets/present/1_flou4.jpg"
 	wrappedOutputImage.saveImage(outputFile)
@@ -511,7 +536,7 @@ object main extends App {
 	inputImage = copy(outputImage);
 	
 	println("\n\nAméliorer les contours de la route... (3-flou3.jpg)");
-	flouter(inputImage,outputImage,3);
+	flouterSurimpression(inputImage,outputImage,3);
 	 
 	outputFile ="assets/present/3-flou3.jpg"
 	wrappedOutputImage.saveImage(outputFile)
@@ -525,15 +550,18 @@ object main extends App {
 	inputImage = copy(outputImage);
 	
 	println("\n\nDétecter la meilleure route de départ...");
-	plusLongueRoute(inputImage,outputImage);
+	//plusLongueRoute(inputImage,outputImage);
 	
 	/*
 	 * println("\n\nDétecter les routes par parallelisme...");
-	chercherpara(inputImage,outputImage);
-  */
+	*/
+	retrouverLesRoutes(inputImage,outputImage);
+  
 	
 	outputFile ="assets/present/5-routes.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
 	println("\n\nRoutes détectées.");
+	
+	
 }
