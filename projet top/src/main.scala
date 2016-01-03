@@ -32,7 +32,7 @@ object main extends App {
 	//Blanc ou noir selon seuil de 80
 	def desature(colorInput:Int):Int={
 	  
-	  if(toBW(colorInput)>80){
+	  if(toBW(colorInput-0xFF000000)>80){
 	    return 0xFFFFFFFF;
 	  }
 	  return 0xFF000000;
@@ -549,12 +549,12 @@ object main extends App {
 	
 	inputImage = copy(outputImage);
 	
-	println("\n\nDétecter la meilleure route de départ...");
-	//plusLongueRoute(inputImage,outputImage);
-	
 	/*
-	 * println("\n\nDétecter les routes par parallelisme...");
+	println("\n\nDétecter la meilleure route de départ...");
+	plusLongueRoute(inputImage,outputImage);
 	*/
+	
+	println("\n\nDétecter les routes par parallelisme...");
 	retrouverLesRoutes(inputImage,outputImage);
   
 	
