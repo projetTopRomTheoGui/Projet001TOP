@@ -14,7 +14,7 @@ class routeNetwork {
     for (i <- 0 until networkList.length) {
       
       //Test with the node size
-      test = networkList(i).size>Math.sqrt(Math.pow(networkList(i).x-x,2) + Math.pow(networkList(i).y-y,2))
+      test = networkList(i).size/2+1>Math.sqrt(Math.pow(networkList(i).x-x,2) + Math.pow(networkList(i).y-y,2))
       
       if(test){
         return networkList(i).id;
@@ -101,7 +101,7 @@ class routeNetwork {
   
   //Get a node
   def node (id: Int):RouteNode = {
-    return this.networkList(id)
+    return this.networkList(this.networkList.length-1-id)
   }
   
 }

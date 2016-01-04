@@ -98,6 +98,14 @@ object main extends App {
 	  
 	}
 	
+  //marquer un point
+	def tracerPoint(output:Array[Array[Int]],x:Int,y:Int,color:Long){
+	  
+	  tracerligne(output,x-3,y,6,0,color);
+	  tracerligne(output,x,y-3,6,90,color);
+	  
+	}
+	
 	
 	
 	
@@ -508,25 +516,23 @@ object main extends App {
 	  //À ce stade on a déterminé la route de taille maximale
 	  
 	  //On la trace sur l'output
-	  tracerligne(output,routeMax(0),routeMax(1),routeMax(3),routeMax(4),0xFF00FF00);
+	  //tracerligne(output,routeMax(0),routeMax(1),routeMax(3),routeMax(4),0xFF880000);
 	  
 	  //On définit les variables des deux points de la route s (start) et e (end)
 	  var sX = routeMax(0);
 	  var sY = routeMax(1);
-	  var sA = routeMax(4)+180;
-	  var sS = routeMax(2);
-	  
-	  var eX = sX + (routeMax(3)*Math.cos(sA*6.283/360)).toInt;
-	  var eY = sY + (routeMax(3)*Math.sin(sA*6.283/360)).toInt;
-	  var eA = sA;
+	  var sA = routeMax(4);
+	  var sS = routeMax(2);	  
+
+	  var eX = sX + (routeMax(3)*Math.cos(routeMax(4)*6.283/360)).toInt;
+	  var eY = sY + (routeMax(3)*Math.sin(routeMax(4)*6.283/360)).toInt;
+	  var eA = routeMax(4);
 	  var eS = sS;
 	  
-	  // on a <--E . . . . S--> pour ce qui est des angles en fonction de la position
-	  
-	  
-	  //Enfin on ajoute ces deux points au réseau routier
-	  routes.addNode(sX, sY, sS, sA);
-	  routes.addNode(eX, eY, eS, eA, routes.lastId());
+	  //Enfin on prend comme point de départ le point de départ de cette ligne,
+	  // avec un angle droit pour détecter les deux extremitées de départ ensuite
+	  routes.addNode(((sX+eX)/2).toInt, ((sY+eY)/2).toInt, sS, sA+90);
+	  //routes.addNode(eX, eY, eS, eA, routes.lastId());
 	  
 	  
 	  
@@ -637,41 +643,132 @@ object main extends App {
 	//// RETROUVE ROUTES RECURSION ////
 	///////////////////////////////////
 	
+	
 	def chercherRecursion(image: Array[Array[Int]], output: Array[Array[Int]], node: RouteNode){
 	  
-	  //Parametre
-	  var tailleMinimumRoute = 10;
-	   
-	  println(node.angle);
+	  if(routes.networkList.length>5000 ){
+	    println("cut");
+	    return;
+	  }
 	  
-	  // Chercher une suite avec parallele
-	  
-	  var paralleleGauche = Array(0,0,0,0);
-	  var paralleleDroite = Array(0,0,0,0);
-	  
-	  // On évite de revenir en arrière...
-	  for(angle <- node.angle-150 to node.angle+150){
-	    
-	      paralleleGauche = recherche_parallele(image,node.x,node.y,angle,tailleMinimumRoute,node.size/2+2,1);
-	      paralleleDroite = recherche_parallele(image,node.x,node.y,angle,tailleMinimumRoute,node.size/2+2,-1);
-	      
-	      if(paralleleGauche(0)==1 && paralleleDroite(0)==1){
-	        println(angle);
-	      }
-	      
-	      println(angle);
-
-	    
+	  //Éviter de continuer sur les bords/*
+	  if(node.x<0 || node.x>image(0).length || node.y<0 || node.y>image.length){
+	    return;
 	  }
 	  
 	  
+	  //Parametre
+	  var tailleMinimumRoute = (node.size)/2+1;
+	   	 
+
+  	  	    
+	    var point = Array(0,0,0,0);
+	    var distanceFromCenter = 0;
+	    var x = node.x;
+	    var y = node.y;
+	    var result = Array(0,0,0);
+	    var taille = 0;
+	    var newX = 0;
+	    var newY = 0;
+	    var next = Array(0,0,0,0);
+	    
+	    var max = node.size*1.5;
+	    var correct = true;
+
+  		var anstaille = 0;
+  		var anstailleMore = false;
+  		var count = 0;
+  		
+  		var nodeSur = 0;
+  		  		
+	    for(angle <- node.angle-160 to node.angle+160 by 2){
+	       
+
+	      correct = true;
+	      taille = 0;
+	      while(correct == true && taille<node.size*1.5){
+	        
+	        newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
+  		    newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
+	        correct = lirePixel(newX,newY,image)>100;
+	        
+	        taille += 1;
+	        
+	      }
+	      
+	      
+	      if(taille>=anstaille && correct){
+	        
+	        // tracerligne(output,(x).toInt,(y).toInt,taille,angle,0xFFFFDDAA );
+
+	        count+=1
+	      }else{
+	        
+	        if(count>0){
+	          
+	          
+	          anstaille = Math.min(anstaille,node.size);
+	          
+  	        //tracerligne(output,(x).toInt,(y).toInt,taille*2,angle,0xFF880000 );
+  
+  	        
+  	        //Ici on est dans un choix interressant
+  	        //Angle = angle - 5*(count/2+1).toInt
+  	        //Taille = anstaille
+  	        
+  	        //Voici les valeurs de destination
+  	        newX = x + (anstaille*Math.cos((angle - 2*(count/2+1).toInt)*6.283/360)).toInt;
+  	        newY = y + (anstaille*Math.sin((angle - 2*(count/2+1).toInt)*6.283/360)).toInt;
+  
+  
+  	        
+  	        if(routes.lookForRoad(newX, newY) == -1){
+        	  
+        	    tracerligne(output,(x).toInt,(y).toInt,anstaille,angle - 2*(count/2+1).toInt,0xFFFF0000);
+
+          	  //Calculer la nouvelle taille de route
+  	          //size = calculSize(image,x,y,angle - 5*(count/2+1).toInt)
+  	          
+        	    
+  	            outputFile ="assets/present/8 - "+ routes.lastId() +".jpg"
+	              wrappedOutputImage.saveImage(outputFile)
+        	    
+  	          
+          	  routes.addNode(newX, newY, node.size, angle - 5*(count/2+1).toInt,node.id);
+          	  
+          	  chercherRecursion(image,output,routes.node(routes.lastId()));
+          	  
+          	  
+          	  
+        	  }else{
+        	    
+        	    nodeSur = routes.lookForRoad(newX, newY);
+        	    
+        	    if(Math.abs(nodeSur-node.id)>10){
+        	       tracerligne(output,(x).toInt,(y).toInt,Math.sqrt(Math.pow(routes.node(nodeSur).x-x,2)+Math.pow(routes.node(nodeSur).y-y,2)).toInt,angle - 2*(count/2+1).toInt,0xFFFF8888);
+
+        	      //On connecte la route
+        	      routes.connect(node.id, nodeSur);
+        	    
+        	    }
+        	  }
+	          
+	        }
+	        
+	        count = 0;
+	        
+	        
+	      }
+	      
+	      anstaille = taille;
+	      	      
+	    }
+	    
+
+	    
+	    
 	  
 	  
-	  // Si pas de suite avec parallele, on suit avec la route à gauche...
-	  
-	  
-	  
-	  // Puis avec la route à droite
 	  
 	  
 	}
@@ -695,7 +792,7 @@ object main extends App {
 	/////// INITIALISATION ///////
  
   //Entree image
-	var filename : String = "assets/Images/ImagesTests/3.jpg"
+	var filename : String = "assets/Images/ImagesTests/4.jpg"
 	var wrappedInputImage : ImageWrapper = new ImageWrapper(filename);
 	var inputImage : Array[Array[Int]] = wrappedInputImage.getImage();
 	//Future image de sortie
@@ -771,32 +868,30 @@ object main extends App {
 	
 	println("\n\nDétecter la meilleure route de départ...");
 	plusLongueRoute(inputImage,outputImage);
+
 	
+  //////////////////////////////
+	 
+
+	
+	/////// Recursion a partir de la node de la route precedente ///////
+	
+	var node1 = routes.node(0);
+	
+  chercherRecursion(inputImage,outputImage,node1);
+	
+
+  //////////////////////////////
+  
+  	
 	/* // Afficher tout les parallelismes
 	println("\n\nDétecter les parallelisme...");
 	afficherParallelismes(inputImage,outputImage);
   */
 	
-	outputFile ="assets/present/5-routes.jpg"
+  
+  outputFile ="assets/present/6-routes.jpg"
 	wrappedOutputImage.saveImage(outputFile)
-	
-	
-  //////////////////////////////
-	
-	
-	
-	/////// Recursion a partir des deux nodes de la route precedente ///////
-	
-	var node1 = routes.node(0);
-  var node2 = routes.node(1);
-	
-  chercherRecursion(inputImage,outputImage,node1);
-  chercherRecursion(inputImage,outputImage,node2);
-	
-
-  //////////////////////////////
-  
-  
 	
 	println("\n\nRoutes détectées.");
 	
