@@ -308,7 +308,10 @@ object main extends App {
 	//  - angle
 	//  - taille de la ligne
 	//et on ajoute le champs maximum de recherche
-	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille:Int,champMaximum:Int):Array[Int]={
+	//Enfin on ajoute un inverseur pour indiquer si on veut chercher dans un sens ou dans l'autre
+	//Ex. si inverseur = 1 on va chercher une parallele en DESCENDANT (angle +90°)
+	//si on met -1, ce sera en MONTANT
+	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille:Int,champMaximum:Int,inverseur:Int):Array[Int]={
 	  
 	  //Definition des variables
 	  // - debut et fin de la ligne paralelle
@@ -332,9 +335,9 @@ object main extends App {
 	  for(ecartement <- 2 to champMaximum){
 	    
 	    //Pour avancer perpendiculairement, on multiplie une distance
-	    //avec l'angle et cos et sin inversés (rotation de 90°)
-	    xStartPara = x + (ecartement*Math.cos((angle+90)*6.283/360)).toInt;
-	    yStartPara = y + (ecartement*Math.sin((angle+90)*6.283/360)).toInt;
+	    //(rotation de 90°)
+	    xStartPara = x + (ecartement*Math.cos((angle+90*inverseur)*6.283/360)).toInt;
+	    yStartPara = y + (ecartement*Math.sin((angle+90*inverseur)*6.283/360)).toInt;
 	    
 	    //Si le pixel destination est noir alors on regarde si on a
 	    // une ligne complete de la même taille que l'input
@@ -470,7 +473,7 @@ object main extends App {
       		      if(taille>Math.max(1,max-1)){
       		        
       		        //On stoque les donnees de la parallele dans la variable eponyme
-    		          parallele = recherche_parallele(image,x,y,angle,taille,longueurMinimum*2);
+    		          parallele = recherche_parallele(image,x,y,angle,taille,longueurMinimum*2,1);
     		          //Si on a trouvé une parallele (première valeur à 1)
     		          //on enregistre ses donnees dans une variables differente
     		          //sinon on s'arrete
@@ -510,13 +513,15 @@ object main extends App {
 	  //On définit les variables des deux points de la route s (start) et e (end)
 	  var sX = routeMax(0);
 	  var sY = routeMax(1);
-	  var sA = routeMax(4);
+	  var sA = routeMax(4)+180;
 	  var sS = routeMax(2);
 	  
 	  var eX = sX + (routeMax(3)*Math.cos(sA*6.283/360)).toInt;
 	  var eY = sY + (routeMax(3)*Math.sin(sA*6.283/360)).toInt;
-	  var eA = sA+180;
+	  var eA = sA;
 	  var eS = sS;
+	  
+	  // on a <--E . . . . S--> pour ce qui est des angles en fonction de la position
 	  
 	  
 	  //Enfin on ajoute ces deux points au réseau routier
@@ -546,7 +551,7 @@ object main extends App {
 	def afficherParallelismes(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
 	  	  
-	  //Vu qu'on va tracer la route uniquement, on efface l'output
+	  //Vu qu'on va tracer la route uniquement, on efface l'output 
 	  blanche(output);
 	  
 	  
@@ -600,7 +605,7 @@ object main extends App {
   		        
   		        if(ligne == true){
   		          
-  		          parallele = recherche_parallele(image,x,y,angle,longueurMinimum,longueurMinimum*2);
+  		          parallele = recherche_parallele(image,x,y,angle,longueurMinimum,longueurMinimum*2,1);
   		          if(parallele(0)==1){
   		            tracerligne(output,((x+parallele(1))/2).toInt,((y+parallele(2))/2).toInt,longueurMinimum,angle,0xFFFF0000);
   		          }
@@ -634,6 +639,39 @@ object main extends App {
 	
 	def chercherRecursion(image: Array[Array[Int]], output: Array[Array[Int]], node: RouteNode){
 	  
+	  //Parametre
+	  var tailleMinimumRoute = 10;
+	   
+	  println(node.angle);
+	  
+	  // Chercher une suite avec parallele
+	  
+	  var paralleleGauche = Array(0,0,0,0);
+	  var paralleleDroite = Array(0,0,0,0);
+	  
+	  // On évite de revenir en arrière...
+	  for(angle <- node.angle-150 to node.angle+150){
+	    
+	      paralleleGauche = recherche_parallele(image,node.x,node.y,angle,tailleMinimumRoute,node.size/2+2,1);
+	      paralleleDroite = recherche_parallele(image,node.x,node.y,angle,tailleMinimumRoute,node.size/2+2,-1);
+	      
+	      if(paralleleGauche(0)==1 && paralleleDroite(0)==1){
+	        println(angle);
+	      }
+	      
+	      println(angle);
+
+	    
+	  }
+	  
+	  
+	  
+	  
+	  // Si pas de suite avec parallele, on suit avec la route à gauche...
+	  
+	  
+	  
+	  // Puis avec la route à droite
 	  
 	  
 	}

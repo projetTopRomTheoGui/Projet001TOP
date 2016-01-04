@@ -16,7 +16,7 @@ class RouteNode (identity:Int) {
  
   var connectionsList: List[Int] = Nil;
   
-  //Set node position
+  //Set node position 
   def setXY (x: Int, y: Int) {
     this.x = x;
     this.y = y;

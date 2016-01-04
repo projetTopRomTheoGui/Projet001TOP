@@ -6,7 +6,7 @@ class routeNetwork {
   
   var networkList: List[RouteNode] = Nil;
   
-  //Return -1 if no node found or the identity
+  //Return -1 if no node found or the identity 
   def lookForRoad (x: Int, y: Int):Int = {
     
     var test: Boolean = false;
