@@ -108,7 +108,6 @@ object main extends App {
 	
 	def desaturate(src:Array[Array[Int]]){
 	  
-	  
 	  for(i<- 0 until src.length){
       for (j<-0 until src(0).length){
         src(i)(j)=desature(src(i)(j))
@@ -127,28 +126,39 @@ object main extends App {
 	//// FLOUTAGE ET SURIMPRESSION/////
 	///////////////////////////////////
   
-	//La moyenne des couleurs sur le cercle de taille donnee
+	//La moyenne des couleurs sur le cercle de taille donnee avec surimpression du noir
   def moyenne(size:Int,x:Int,y:Int,image:Array[Array[Int]]):Int={
+    
     
     var moyenne:Long = 0;
     var nb:Long = 0;
     var couleur= 0;
     var coef = 1;
     
+    //Pour chaque pixel du carré autour
     for(ix<- x-size/2 to x+size/2){
       for(iy<- y-size/2 to y+size/2){
+        
+        //Couleur du pixel et application d'un coefficient tel que
+        //Plus le pixel est noir (proche de 0) plus le coefficient est grand
+        //et ce selon 3^x avec x decroissant de la couleur
+        //Enfin pour éviter un dépassement du Long, on applique une division par 30
+        //(Ainsi max : 3^9 = 19 684 et pour 6*6 cases : 708 588 qui entre dans un Long)
         couleur = lirePixel(ix,iy,image);
         coef = 1+(Math.pow(3,(255-couleur)/30)).toInt;
         moyenne += coef*couleur;
         nb += coef;
+        
       }
     }
     
-    //Inconnu : depassement
+    
+    //Si on a un dépassement de la moyenne maximum
     if(moyenne>nb*255){
       return 255;
     }
     
+    //Comme on a appliquer des coeeficients spéciaux, la moyenne sera avec une forte surimpression du noir
     moyenne = moyenne/nb;
     
     return moyenne.toInt;
@@ -157,18 +167,22 @@ object main extends App {
   
   def flouterSurimpression(input:Array[Array[Int]],output:Array[Array[Int]],size:Int){
     
+    //Afficher un chargement
     var avance = 0;
 	  println("0% .                                                . 100%");
 	  print("   |");
     
     for(x<-0 to output(0).length-1){
       
+      //Le chargement
       if(avance!=(x*50/output(0).length).toInt){
 	      avance = (x*50/output(0).length).toInt;
 	      print("|")
 	    }
       
       for(y<-0 to output.length-1){
+        
+        //Remplacer chaque pixel par la moyenne définie ci dessus
         output(y)(x) = getBWcolor(moyenne(size,x,y,input));
       }
     }
@@ -248,11 +262,17 @@ object main extends App {
   			  md=lirePixel(col+1,row, inputImage)
   			  bd=lirePixel(col+1,row+1, inputImage)
   			  
-  			  //On calcule les gradients
-  			  gradX=hd+2*md+bd-hg-2*mg-bg+(0.5*(mdd-mgg)).toInt
-  			  gradY=hg+2*hm+hd-bg-2*bm-bd+(0.5*(hhm-bbm)).toInt
+  			  //On calcule les gradients avec des coefficients plus faibles pour les pixels eloignes
+  			  //gauche : les diagonales (coef 1)
+  			  //milieu : linéairement (coef 2)
+  			  //droite : eloigne linéairement (coef 0.5)
+  			  gradX=(hd-bg)+(bd-hg)+2*(md-mg)+(0.5*(mdd-mgg)).toInt
+  			  gradY=(hg-bd)+(hd-bg)+2*(hm-bm)+(0.5*(hhm-bbm)).toInt
   			  
+  			  //On calcule le gradient général par somme quadratique avec majoration
   			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
+  			  
+  			  //Ajout d'un seuil à 140 et on inverse les couleurs pour un bord noir
   			  grad=255-grad
   			  if (grad>140){
   			    grad=255
@@ -260,8 +280,7 @@ object main extends App {
   			    grad=0
   			  }
   			  
-  			  output(row)(col)=grad+grad*256+grad*256*256
-  			  
+  			  output(row)(col)=getBWcolor(grad);
 			  
 		    }
 			  
@@ -283,61 +302,96 @@ object main extends App {
 	//////////////////////
 	
 	//Trouver la parallele à la ligne courrante
-	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille_recherche:Int,tailleroutemax:Int):Array[Int]={
+	//On donne en entrée l'image sur laquelle on travaille
+	//les donnees de la ligne dont on cherche une paralelle :
+	//  - position x, y
+	//  - angle
+	//  - taille de la ligne
+	//et on ajoute le champs maximum de recherche
+	def recherche_parallele(image:Array[Array[Int]],x:Int,y:Int,angle:Int,taille:Int,champMaximum:Int):Array[Int]={
 	  
-	  var newXdist = 0;
-	  var newYdist = 0;
-	  var newX = 0;
-	  var newY = 0;
-	  var ligne = true;
-	  var resultat = Array(0,0,0,0);
-	  var blanc = 0;
+	  //Definition des variables
+	  // - debut et fin de la ligne paralelle
+	  var xStartPara = 0;
+	  var yStartPara = 0;
+	  var xEndPara = 0;
+	  var yEndPara = 0;
+	  // - pour vérifier la ligne
+	  var isLineComplete = true;
+	  var nbWhitePixels = 0;
+	  // - données de sortie
+	  // - - si on a trouvé 1 sinon 0
+	  // - - position initiale en x
+	  // - - position initiale en y
+	  // - - distance de l'autre droite et donc taille de la route
+	  var output = Array(0,0,0,0);
 	  
-	  //On avance perpendiculairement
-	  for(distance <- 2 to tailleroutemax){
+	  
+	  
+	  //On avance perpendiculairement à la ligne d'entree
+	  for(ecartement <- 2 to champMaximum){
 	    
-	    newXdist = x + (distance*Math.cos((angle+90)*6.283/360)).toInt;
-	    newYdist = y + (distance*Math.sin((angle+90)*6.283/360)).toInt;
+	    //Pour avancer perpendiculairement, on multiplie une distance
+	    //avec l'angle et cos et sin inversés (rotation de 90°)
+	    xStartPara = x + (ecartement*Math.cos((angle+90)*6.283/360)).toInt;
+	    yStartPara = y + (ecartement*Math.sin((angle+90)*6.283/360)).toInt;
 	    
-	    //Si le pixel destination est noir
-      if(lirePixel(newXdist,newYdist,image)<100){
+	    //Si le pixel destination est noir alors on regarde si on a
+	    // une ligne complete de la même taille que l'input
+      if(lirePixel(xStartPara,yStartPara,image)<100){
         
-        ligne = true;
+        isLineComplete = true;
         
-        //On regarde si on a une ligne continue
-        for(taille<- 1 to taille_recherche){
+        //On regarde si on a une ligne continue de la bonne taille
+        for(longueur<- 1 to taille){
 		      
-		      newX = newXdist + (taille*Math.cos(angle*6.283/360)).toInt;
-		      newY = newYdist + (taille*Math.sin(angle*6.283/360)).toInt;
+		      xEndPara = xStartPara + (longueur*Math.cos(angle*6.283/360)).toInt;
+		      yEndPara = yStartPara + (longueur*Math.sin(angle*6.283/360)).toInt;
 		       
-		      if(lirePixel(newX,newY,image)>100){
-		        ligne = false;
+		      //Si on tombe sur du blanc la ligne est rompu
+		      if(lirePixel(xEndPara,yEndPara,image)>100){
+		        isLineComplete = false;
 		      }
 		        
 		    }
         
-        if(ligne == true && blanc>1){
-          resultat(0) = 1;
-          resultat(1) = newXdist;
-          resultat(2) = newYdist;
-          resultat(3) = distance;
+        //Si on est tombé sur aucun blanc et qu'on est pas resté
+        // sur la même ligne de départ lors de l'écartement
+        if(isLineComplete && nbWhitePixels>1){
+          output(0) = 1;
+          output(1) = xStartPara;
+          output(2) = yStartPara;
+          output(3) = ecartement;
         }
       
       }else{
-        blanc = blanc+1;
+        
+        //Si on tombe sur du blanc, on incremente cette variable,
+        // en effet si les bords détectés sont epais, on risque de
+        // renvoyer en valeur de retour le même bord qu'en entrée avec un pixel de décalage.
+        // on utilise donc cette variable pour confirmer qu'on à bien traversé une route entre temps.
+        
+        nbWhitePixels = nbWhitePixels+1;
       }
 	    
 	  }
 	  
-	  return resultat;
+	  return output;
 	}
 	
+	
 	//Trouver la plus grande route droite pour démarrer
+	//on prend en entree l'image sur laquelle on travailel et l'image sur laquelle on va dessiner (output)
 	def plusLongueRoute(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
+	  //Vu qu'on va tracer la route uniquement, on efface l'output
 	  blanche(output);
 	  
-	  var taille_recherche = 10;
+	  
+	  //Paramètre de longueur minimale de route : 10 pixels
+	  var longueurMinimum = 10;
+	  
+	  //Definition des variables
 	  var newX = 0;
 	  var newY = 0;
 	  var ligne = false;
@@ -348,26 +402,32 @@ object main extends App {
 	  var taille = 0;
 	  var max = 0;
 	  
+	  
+	  //Pour afficher le chargement
 	  var avance = 0;
 	  println("0% .                                                . 100%");
 	  print("   |");
 	  
-	  for(x <- taille_recherche to image(0).length-1-taille_recherche by 3){
+	  
+	  for(x <- longueurMinimum to image(0).length-1-longueurMinimum){
 	    
+	    
+	    //Chargement
 	    if(avance!=(x*50/image(0).length).toInt){
 	      avance = (x*50/image(0).length).toInt;
 	      print("|")
 	    }
 	    
-		  for(y <- taille_recherche to image.length-1-taille_recherche by 3){
+	    
+		  for(y <- longueurMinimum to image.length-1-longueurMinimum){
 		    
 		    if(lirePixel(x,y,image)<100){
 		      
   		    //Pour chaque pixel on regarde dans les pixels environnants
   		    for(angle<- 0 to 170 by 10){
   		      
-  		      newX = x + (taille_recherche*Math.cos(angle*6.283/360)).toInt;
-  		      newY = y + (taille_recherche*Math.sin(angle*6.283/360)).toInt;
+  		      newX = x + (longueurMinimum*Math.cos(angle*6.283/360)).toInt;
+  		      newY = y + (longueurMinimum*Math.sin(angle*6.283/360)).toInt;
   		       
   		      //Si le pixel destination est noir
   		      if(lirePixel(newX,newY,image)<100){
@@ -387,7 +447,7 @@ object main extends App {
       		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
       		        
       		      if(taille>Math.max(1,max-1)){
-    		          parallele = recherche_parallele(image,x,y,angle,taille,taille_recherche*2);
+    		          parallele = recherche_parallele(image,x,y,angle,taille,longueurMinimum*2);
     		          if(parallele(0)==0){
     		            
     		            ligne = false;
@@ -452,9 +512,15 @@ object main extends App {
 	
 	def afficherParallelismes(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
+	  	  
+	  //Vu qu'on va tracer la route uniquement, on efface l'output
 	  blanche(output);
 	  
-	  var taille_recherche = 10;
+	  
+	  //Paramètre de longueur minimale de route : 10 pixels
+	  var longueurMinimum = 10;
+	  
+	  //Definition des variables
 	  var newX = 0;
 	  var newY = 0;
 	  var ligne = false;
@@ -464,7 +530,7 @@ object main extends App {
 	  println("0% .                                                . 100%");
 	  print("   |");	    
 	    
-	  for(x <- taille_recherche to image(0).length-1-taille_recherche){
+	  for(x <- longueurMinimum to image(0).length-1-longueurMinimum){
 	    
 	    if(avance!=(x*50/image(0).length).toInt){
 	      avance = (x*50/image(0).length).toInt;
@@ -472,15 +538,15 @@ object main extends App {
 	    }
 	    
 	    
-		  for(y <- taille_recherche to image.length-1-taille_recherche){
+		  for(y <- longueurMinimum to image.length-1-longueurMinimum){
 		    
 		    if(lirePixel(x,y,image)<100){
 		      
   		    //Pour chaque pixel on regarde dans les 5 pixels environnants
   		    for(angle<- 0 to 360 by 10){
   		      
-  		      newX = x + (taille_recherche*Math.cos(angle*6.283/360)).toInt;
-  		      newY = y + (taille_recherche*Math.sin(angle*6.283/360)).toInt;
+  		      newX = x + (longueurMinimum*Math.cos(angle*6.283/360)).toInt;
+  		      newY = y + (longueurMinimum*Math.sin(angle*6.283/360)).toInt;
   		       
   		      //Si le pixel destination est noir
   		      if(lirePixel(newX,newY,image)<100){
@@ -488,7 +554,7 @@ object main extends App {
   		        ligne = true;
   		        
   		        //On regarde si on a une ligne continue
-  		        for(taille<- 1 to taille_recherche){
+  		        for(taille<- 1 to longueurMinimum){
       		      
       		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
       		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
@@ -501,9 +567,9 @@ object main extends App {
   		        
   		        if(ligne == true){
   		          
-  		          parallele = recherche_parallele(image,x,y,angle,taille_recherche,taille_recherche*2);
+  		          parallele = recherche_parallele(image,x,y,angle,longueurMinimum,longueurMinimum*2);
   		          if(parallele(0)==1){
-  		            tracerligne(output,((x+parallele(1))/2).toInt,((y+parallele(2))/2).toInt,taille_recherche,angle,0xFFFF0000);
+  		            tracerligne(output,((x+parallele(1))/2).toInt,((y+parallele(2))/2).toInt,longueurMinimum,angle,0xFFFF0000);
   		          }
   		        }
   		      
