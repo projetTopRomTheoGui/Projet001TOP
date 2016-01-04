@@ -4,6 +4,7 @@ object main extends App {
   ///////////////////
   //// FONCTIONS ////
   ///////////////////
+    
   
   //Reconstruit le pixel
   def getBWcolor(bw:Int):Int={
@@ -190,48 +191,67 @@ object main extends App {
   
   //algorithme de Sobel
 	def Sobel(output:Array[Array[Int]]):Array[Array[Int]]={
+	  
 	  var output=toGrey(outputImage)
 	  var inputImage=copy(output)
+	  
 	  //code variable : b-m-h = bas-milieu-haut  g-m-d = gauche-milieu-droite  (multiple = plus loin)
+	  //   _   _   hhm  _    _
+    //   _   hg  hm   hd   _
+    //  mgg  mg  mm   md  mdd  
+    //   _   bg  bm   bd   _
+    //   _   _   bbm  _    _
+	  //
+	  // Sobel est applque sur ce cercle de variables
 	  var mgg = 0
 	  var hhm = 0
 	  var mdd = 0
 	  var bbm = 0
+	  
 	  var hg = 0
 	  var mg = 0
 	  var bg = 0
 	  var hm = 0
+	  
 	  var bm = 0
 	  var hd = 0
 	  var md = 0
 	  var bd = 0
-	  //def des gradients
+	  
+	  //on definit les gradients X, Y et total
 	  var gradX=0
 	  var gradY=0
 	  var grad=0
+	  
+	  
+	  //recherche des bords sur toute l'image
 	  for(row <- 0 until output.length){
 		  for(col <- 0 until output(0).length){
 		    
-		    //Enlever les bords
+		    //Enlever les bords et eviter une sortie de tableau
 		    if(row<4 || row>=output.length-3 || col<4 || col>=output(0).length-3){
 		       output(row)(col)=0xFFFFFF;
 		    }else{
   		    
   		    
-  			  mgg=inputImage(row)(col-2)%256
-  			  hhm=inputImage(row-2)(col)%256
-  			  mdd=inputImage(row)(col+2)%256
-  			  bbm=inputImage(row+2)(col)%256
-  			  hg=inputImage(row-1)(col-1)%256
-  			  mg=inputImage(row)(col-1)%256
-  			  bg=inputImage(row+1)(col-1)%256
-  			  hm=inputImage(row-1)(col)%256
-  			  bm=inputImage(row+1)(col)%256
-  			  hd=inputImage(row-1)(col+1)%256
-  			  md=inputImage(row)(col+1)%256
-  			  bd=inputImage(row+1)(col+1)%256
+  			  mgg=lirePixel(col-2,row, inputImage)
+  			  hhm=lirePixel(col,row-2, inputImage)
+  			  mdd=lirePixel(col+2,row, inputImage)
+  			  bbm=lirePixel(col,row+2, inputImage)
+  			  
+  			  hg=lirePixel(col-1,row-1, inputImage)
+  			  mg=lirePixel(col-1,row, inputImage)
+  			  bg=lirePixel(col-1,row+1, inputImage)
+  			  hm=lirePixel(col,row-1, inputImage)
+  			  bm=lirePixel(col,row+1, inputImage)
+  			  hd=lirePixel(col+1,row-1, inputImage)
+  			  md=lirePixel(col+1,row, inputImage)
+  			  bd=lirePixel(col+1,row+1, inputImage)
+  			  
+  			  //On calcule les gradients
   			  gradX=hd+2*md+bd-hg-2*mg-bg+(0.5*(mdd-mgg)).toInt
   			  gradY=hg+2*hm+hd-bg-2*bm-bd+(0.5*(hhm-bbm)).toInt
+  			  
   			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
   			  grad=255-grad
   			  if (grad>140){
@@ -245,7 +265,6 @@ object main extends App {
 			  
 		    }
 			  
-			  //Console.err.println(gradX+" "+gradY+" "+grad+" "+image(row)(col)%256)
 		  }
 	  }
 	  return output
@@ -271,7 +290,7 @@ object main extends App {
 	  var newX = 0;
 	  var newY = 0;
 	  var ligne = true;
-	  var resultat = Array(0,0,0);
+	  var resultat = Array(0,0,0,0);
 	  var blanc = 0;
 	  
 	  //On avance perpendiculairement
@@ -301,6 +320,7 @@ object main extends App {
           resultat(0) = 1;
           resultat(1) = newXdist;
           resultat(2) = newYdist;
+          resultat(3) = distance;
         }
       
       }else{
@@ -321,9 +341,9 @@ object main extends App {
 	  var newX = 0;
 	  var newY = 0;
 	  var ligne = false;
-	  var parallele = Array(0,0,0);
-	  var parallele_end = Array(0,0,0);
-	  var parallele_max = Array(0,0,0,0);
+	  var parallele = Array(0,0,0,0);
+	  var parallele_end = Array(0,0,0,0);
+	  var parallele_max = Array(0,0,0,0,0);
 	  var taille_route = 0;
 	  var taille = 0;
 	  var max = 0;
@@ -382,7 +402,7 @@ object main extends App {
   		        
   		        if(taille>max){
   		          max = taille;
-  		          parallele_max = Array(((x+parallele_end(1))/2).toInt,((y+parallele_end(2))/2).toInt,taille,angle);
+  		          parallele_max = Array(((x+parallele_end(1))/2).toInt,((y+parallele_end(2))/2).toInt,parallele_end(3),taille,angle);
   		        }
   		      
   		      }
@@ -396,17 +416,24 @@ object main extends App {
 	  
 	  println("");
 	  
-	  tracerligne(output,parallele_max(0),parallele_max(1),parallele_max(2),parallele_max(3),0xFF00FF00);
+	  tracerligne(output,parallele_max(0),parallele_max(1),parallele_max(3),parallele_max(4),0xFF00FF00);
 	  
 	  var sX = parallele_max(0);
 	  var sY = parallele_max(1);
-	  var sA = parallele_max(2);
+	  var sA = parallele_max(4);
+	  var sS = parallele_max(2);
 	  
 	  var eX = sX + (parallele_max(3)*Math.cos(sA*6.283/360)).toInt;
 	  var eY = sY + (parallele_max(3)*Math.sin(sA*6.283/360)).toInt;
-	  var eA = sA+180;	  
+	  var eA = sA+180;
+	  var eS = sS;
 	  
-	  println("\n\nTrace de la route... (5-routes.jpg)")
+	  
+	  //Ajouter ces deux points au réseau
+	  routes.addNode(sX, sY, sS, sA);
+	  routes.addNode(eX, eY, eS, eA, routes.lastId());
+	  
+	  
 	  
 	}
 	
@@ -420,10 +447,10 @@ object main extends App {
 	
 	
 	///////////////////////////////////////////////
-	//// RETROUVER LES ROUTES PAR PARALLELISME ////
+	//// AFFICHER LES PARALLELISME ////
 	///////////////////////////////////////////////
 	
-	def retrouverLesRoutes(image:Array[Array[Int]],output:Array[Array[Int]]){
+	def afficherParallelismes(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
 	  blanche(output);
 	  
@@ -494,7 +521,7 @@ object main extends App {
 	
 	
 	///////////////////////////////////////////////////
-	//// FIN RETROUVER LES ROUTES PAR PARALLELISME ////
+	//// FIN AFFICHER PARALLELISME ////
 	///////////////////////////////////////////////////
 	
 	
@@ -502,23 +529,56 @@ object main extends App {
 	
 	
 	
+	///////////////////////////////////
+	//// RETROUVE ROUTES RECURSION ////
+	///////////////////////////////////
+	
+	def chercherRecursion(image: Array[Array[Int]], output: Array[Array[Int]], node: RouteNode){
+	  
+	  
+	  
+	}
 	
 	
-  
-  //// MAIN ////
+  ///////////////////////////////////////
+	//// FIN RETROUVE ROUTES RECURSION ////
+	///////////////////////////////////////
+	
+	
+	
+	
+	
+  ///////////////////////
+	////               ////
+  ////      MAIN     ////
+	////               ////
+	///////////////////////
+	
+	
+	/////// INITIALISATION ///////
  
   //Entree image
-	var filename : String = "assets/Images/ImagesTests/1.jpg"
+	var filename : String = "assets/Images/ImagesTests/3.jpg"
 	var wrappedInputImage : ImageWrapper = new ImageWrapper(filename);
 	var inputImage : Array[Array[Int]] = wrappedInputImage.getImage();
 	//Future image de sortie
 	var wrappedOutputImage : ImageWrapper = new ImageWrapper(filename);
 	var outputImage : Array[Array[Int]] = wrappedOutputImage.getImage();
 
-	println("Initialisation (0-init.jpg)");
 	
+	//Créer le réseau routier
+	var routes = new routeNetwork();
+	
+
 	var outputFile:String="assets/present/0-init.jpg"
 	wrappedOutputImage.saveImage(outputFile)
+	
+	//////////////////////////////
+	
+	
+	
+	
+	/////// Appliquer un flou avec surimpression ///////
 	
 	println("\n\nFlou par 4... (1-flou4.jpg)");
 	flouterSurimpression(inputImage,outputImage,4);
@@ -526,6 +586,11 @@ object main extends App {
 	outputFile ="assets/present/1_flou4.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
+  //////////////////////////////
+
+	
+	
+	/////// Enlever ce qui n'est pas une route ///////
 		
 	println("\n\nGarder la route... (2-route.jpg)");
 	desaturate(outputImage);
@@ -533,7 +598,13 @@ object main extends App {
 	outputFile ="assets/present/2-route.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
+	//Eliminer l'image originale pour appliquer le flou suivant
 	inputImage = copy(outputImage);
+	
+  //////////////////////////////
+
+	
+	/////// Appliquer un faible flou pour lisser l'image précédente ///////
 	
 	println("\n\nAméliorer les contours de la route... (3-flou3.jpg)");
 	flouterSurimpression(inputImage,outputImage,3);
@@ -541,25 +612,54 @@ object main extends App {
 	outputFile ="assets/present/3-flou3.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
+	//////////////////////////////
+
+	
+	/////// Trouver les bords avec Sobel //////
+	
 	println("\n\nDétecter les bords de la route avec Sobel... (4-sobel.jpg)");
 	Sobel(outputImage);
 	
 	outputFile ="assets/present/4-sobel.jpg"
 	wrappedOutputImage.saveImage(outputFile)
 	
+	//On oublie l'image précédente encore pour ne travailler que sur la nouvelle
 	inputImage = copy(outputImage);
 	
-	/*
+	//////////////////////////////
+	
+	
+	
+	/////// Trouver une route de départ ///////
+	
 	println("\n\nDétecter la meilleure route de départ...");
 	plusLongueRoute(inputImage,outputImage);
-	*/
 	
-	println("\n\nDétecter les routes par parallelisme...");
-	retrouverLesRoutes(inputImage,outputImage);
-  
+	/* // Afficher tout les parallelismes
+	println("\n\nDétecter les parallelisme...");
+	afficherParallelismes(inputImage,outputImage);
+  */
 	
 	outputFile ="assets/present/5-routes.jpg"
 	wrappedOutputImage.saveImage(outputFile)
+	
+	
+  //////////////////////////////
+	
+	
+	
+	/////// Recursion a partir des deux nodes de la route precedente ///////
+	
+	var node1 = routes.node(0);
+  var node2 = routes.node(1);
+	
+  chercherRecursion(inputImage,outputImage,node1);
+  chercherRecursion(inputImage,outputImage,node2);
+	
+
+  //////////////////////////////
+  
+  
 	
 	println("\n\nRoutes détectées.");
 	
