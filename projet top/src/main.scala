@@ -392,13 +392,27 @@ object main extends App {
 	  var longueurMinimum = 10;
 	  
 	  //Definition des variables
-	  var newX = 0;
-	  var newY = 0;
-	  var ligne = false;
+	  var xAutour = 0;
+	  var yAutour = 0;
+	  
+	  var parallelExists = false;
+	  
+	  // retour de la fonction recherche_parallele()
+	  // - - si on a trouvé 1 sinon 0
+	  // - - position initiale en x
+	  // - - position initiale en y
+	  // - - distance de l'autre droite et donc taille de la route
 	  var parallele = Array(0,0,0,0);
 	  var parallele_end = Array(0,0,0,0);
-	  var parallele_max = Array(0,0,0,0,0);
-	  var taille_route = 0;
+	  
+	  // donnees de la route maximum trouvee
+	  // - - position x, y
+	  // - - largeur route
+	  // - - longueur
+	  // - - angle
+	  var routeMax = Array(0,0,0,0,0);
+	  
+	  //Définition pour des variables de calcul
 	  var taille = 0;
 	  var max = 0;
 	  
@@ -421,48 +435,60 @@ object main extends App {
 	    
 		  for(y <- longueurMinimum to image.length-1-longueurMinimum){
 		    
+		    
+		    //Pour chaque pixel, si on est sur du noir :
 		    if(lirePixel(x,y,image)<100){
 		      
-  		    //Pour chaque pixel on regarde dans les pixels environnants
+  		    //On tourne autour de ce pixel à une distance de taille fixée (longueur minimum)
+		      //Pas la peine de faire un tour complet, on gagne du temps !
   		    for(angle<- 0 to 170 by 10){
   		      
-  		      newX = x + (longueurMinimum*Math.cos(angle*6.283/360)).toInt;
-  		      newY = y + (longueurMinimum*Math.sin(angle*6.283/360)).toInt;
+  		      //On calcule la position du pixel visé
+  		      xAutour = x + (longueurMinimum*Math.cos(angle*6.283/360)).toInt;
+  		      yAutour = y + (longueurMinimum*Math.sin(angle*6.283/360)).toInt;
   		       
-  		      //Si le pixel destination est noir
-  		      if(lirePixel(newX,newY,image)<100){
+  		      //Si ce pixel destination est noir également
+  		      if(lirePixel(xAutour,yAutour,image)<100){
   		        
-  		        ligne = true;
+  		        parallelExists = true;
   		        
+  		        //On commence à une distance de 1 pixel, et on regarde si toute la ligne est noire
   		        taille = 1;
-  		        newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
-    		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
+  		        xAutour = x + (taille*Math.cos(angle*6.283/360)).toInt;
+    		      yAutour = y + (taille*Math.sin(angle*6.283/360)).toInt;
     		      
-  		        //On regarde si on a une ligne continue
-  		        while(lirePixel(newX,newY,image)<100 && ligne==true){
+  		        //D'ou le tant que le pixel est noir et que la ligne est complete
+  		        while(lirePixel(xAutour,yAutour,image)<100 && parallelExists==true){
   		          
+  		          //On regarde alors le pixel suivant
   		          taille = taille + 1;
+      		      xAutour = x + (taille*Math.cos(angle*6.283/360)).toInt;
+      		      yAutour = y + (taille*Math.sin(angle*6.283/360)).toInt;
       		      
-      		      newX = x + (taille*Math.cos(angle*6.283/360)).toInt;
-      		      newY = y + (taille*Math.sin(angle*6.283/360)).toInt;
-      		        
+      		      //Si on a dépassé la taille maximum de route,
+      		      //alors on a peut être un autre maximum, on regarde si la parallele existe
       		      if(taille>Math.max(1,max-1)){
+      		        
+      		        //On stoque les donnees de la parallele dans la variable eponyme
     		          parallele = recherche_parallele(image,x,y,angle,taille,longueurMinimum*2);
+    		          //Si on a trouvé une parallele (première valeur à 1)
+    		          //on enregistre ses donnees dans une variables differente
+    		          //sinon on s'arrete
     		          if(parallele(0)==0){
-    		            
-    		            ligne = false;
-    		            
+    		            parallelExists = false;
     		          }else{
     		            parallele_end = parallele;
     		          }
+    		          
       		      }
     		        
   		        
   		        }
   		        
+  		        //Si on a trouvé une parallele plus grande que la plus grande existante alors on remplie la donnee correspondante
   		        if(taille>max){
   		          max = taille;
-  		          parallele_max = Array(((x+parallele_end(1))/2).toInt,((y+parallele_end(2))/2).toInt,parallele_end(3),taille,angle);
+  		          routeMax = Array(((x+parallele_end(1))/2).toInt,((y+parallele_end(2))/2).toInt,parallele_end(3),taille,angle);
   		        }
   		      
   		      }
@@ -476,20 +502,24 @@ object main extends App {
 	  
 	  println("");
 	  
-	  tracerligne(output,parallele_max(0),parallele_max(1),parallele_max(3),parallele_max(4),0xFF00FF00);
+	  //À ce stade on a déterminé la route de taille maximale
 	  
-	  var sX = parallele_max(0);
-	  var sY = parallele_max(1);
-	  var sA = parallele_max(4);
-	  var sS = parallele_max(2);
+	  //On la trace sur l'output
+	  tracerligne(output,routeMax(0),routeMax(1),routeMax(3),routeMax(4),0xFF00FF00);
 	  
-	  var eX = sX + (parallele_max(3)*Math.cos(sA*6.283/360)).toInt;
-	  var eY = sY + (parallele_max(3)*Math.sin(sA*6.283/360)).toInt;
+	  //On définit les variables des deux points de la route s (start) et e (end)
+	  var sX = routeMax(0);
+	  var sY = routeMax(1);
+	  var sA = routeMax(4);
+	  var sS = routeMax(2);
+	  
+	  var eX = sX + (routeMax(3)*Math.cos(sA*6.283/360)).toInt;
+	  var eY = sY + (routeMax(3)*Math.sin(sA*6.283/360)).toInt;
 	  var eA = sA+180;
 	  var eS = sS;
 	  
 	  
-	  //Ajouter ces deux points au réseau
+	  //Enfin on ajoute ces deux points au réseau routier
 	  routes.addNode(sX, sY, sS, sA);
 	  routes.addNode(eX, eY, eS, eA, routes.lastId());
 	  
@@ -510,6 +540,9 @@ object main extends App {
 	//// AFFICHER LES PARALLELISME ////
 	///////////////////////////////////////////////
 	
+	
+	//Exactement le même principe que la fonction de la plus grande
+	//route sauf qu'on affiche à chaque fois la parallele même si c'est pas le maximum
 	def afficherParallelismes(image:Array[Array[Int]],output:Array[Array[Int]]){
 	  
 	  	  
