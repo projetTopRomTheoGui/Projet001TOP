@@ -1,4 +1,5 @@
 import com.tncy.top.image.ImageWrapper;
+import java.io._
 object main extends App {
   
   /////////////////////////////////////////////////////////////////////////
@@ -38,16 +39,20 @@ object main extends App {
 	//ex. assets/resultat.csv
 	var OutputPathCSV : String = "assets/resultat.csv";
   
+  //Sortie fichier de données complet
+	val writerall= new PrintWriter ( new File("noeuds_all.txt"))
+	
+	//Sortie fichier de données simplifiées
+	//val writersimple =  new PrintWriter ( new File ( "noeuds_simple.txt"))
   
   
   
   
   
   
-  
-  ///////////////////////////
-  //// FONCTIONS DE BASE ////
-  ///////////////////////////
+        ///////////////////////////
+        //// FONCTIONS DE BASE ////
+        ///////////////////////////
     
   
   //Reconstruit le pixel en hexa avec une valeur de 0 à 255
@@ -160,7 +165,34 @@ object main extends App {
 	  
 	}
 	
+	//écriture dans le fichier all
+	def ecritureNoeudsAll(writer:PrintWriter) {
+	  for (i <- 0 to routes.networkList.length-1) {
+	    writer.write(routes.node(i).id.toString)
+	    writer.write(":  ")
+	    writer.write(routes.node(i).x.toString)
+	    writer.write(",")
+	    writer.write(routes.node(i).y.toString)
+	    writer.write(",")
+	    writer.write(routes.node(i).angle.toString)
+	    writer.write(",")
+	    writer.write(routes.node(i).connectionsList.length.toString)
+	    writer.write(",")
+	    for (k <- 0 to routes.node(i).connectionsList.length-1) {
+	      writer.write(routes.node(i).connectionsList(k).toString)
+	      writer.write(",")
+	    }
+	    writer.write(" \r\n")
+	  }
+	  writer.close()
+	}
 	
+	//écriture dans le fichier simplifié
+	
+	
+  		///////////////////////////////
+  	  //// FONCTIONS PRINCIPALES ////
+  	  ///////////////////////////////
 	
 	
 	
@@ -951,6 +983,8 @@ object main extends App {
   
   //On enregistre l'image ou l'on veut au départ
   wrappedOutputImage.saveImage(OutputPathImg);
+	
+	ecritureNoeudsAll(writerall)
 	
 	
 }
