@@ -26,7 +26,7 @@ object main extends App {
     
   //Entree image
   //ex. assets/Images/4.jpg
-	var IntputPath : String = "assets/Images/ImagesTests/4.jpg";
+	var IntputPath : String = "assets/Images/4.jpg";
 	
 	
 	
@@ -830,6 +830,7 @@ object main extends App {
   ///////////////////////////////////////
 	//// FIN RETROUVE ROUTES PAR RECURSION ////
 	///////////////////////////////////////
+	
 	
 	
 	
