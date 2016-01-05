@@ -47,7 +47,7 @@ class routeNetwork {
     node.setAngle(angle);
     node.addConnection(origin);
     
-    networkList(origin).addConnection(node.id);
+    this.node(origin).addConnection(node.id);
     
     //Add this node to the network
     networkList = node::networkList;
@@ -88,8 +88,8 @@ class routeNetwork {
       return
     }
     
-    networkList(dst).addConnection(src);
-    networkList(src).addConnection(dst);
+    this.node(dst).addConnection(src);
+    this.node(src).addConnection(dst);
     
   }
   

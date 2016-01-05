@@ -27,7 +27,7 @@ object main extends App {
     
   //Entree image
   //ex. assets/Images/4.jpg
-	var IntputPath : String = "assets/Images/4.jpg";
+	var IntputPath : String = "assets/Images/1.jpg";
 	
 	
 	
@@ -39,12 +39,10 @@ object main extends App {
 	//ex. assets/resultat.csv
 	var OutputPathCSV : String = "assets/resultat.csv";
   
-  //Sortie fichier de données complet
-	val writerall= new PrintWriter ( new File("noeuds_all.txt"))
+
 	
-	//Sortie fichier de données simplifiées
-	//val writersimple =  new PrintWriter ( new File ( "noeuds_simple.txt"))
-  
+	
+	
   
   
   
@@ -165,11 +163,14 @@ object main extends App {
 	  
 	}
 	
-	//écriture dans le fichier all
-	def ecritureNoeudsAll(writer:PrintWriter) {
+	//écriture dans le fichier csv
+	def ecritureNoeudsAll() {
+	  
+	  val writer= new PrintWriter ( new File(OutputPathCSV));
+
 	  for (i <- 0 to routes.networkList.length-1) {
 	    writer.write(routes.node(i).id.toString)
-	    writer.write(":  ")
+	    writer.write(",  ")
 	    writer.write(routes.node(i).x.toString)
 	    writer.write(",")
 	    writer.write(routes.node(i).y.toString)
@@ -177,17 +178,24 @@ object main extends App {
 	    writer.write(routes.node(i).angle.toString)
 	    writer.write(",")
 	    writer.write(routes.node(i).connectionsList.length.toString)
-	    writer.write(",")
+	    writer.write(",\"")
 	    for (k <- 0 to routes.node(i).connectionsList.length-1) {
 	      writer.write(routes.node(i).connectionsList(k).toString)
-	      writer.write(",")
+	      writer.write(";")
 	    }
-	    writer.write(" \r\n")
+	    writer.write("\" \r\n")
 	  }
 	  writer.close()
 	}
+		
 	
-	//écriture dans le fichier simplifié
+	
+	
+	
+	
+	
+	
+	
 	
 	
   		///////////////////////////////
@@ -620,7 +628,6 @@ object main extends App {
 	  //Enfin on prend comme point de départ le point de départ de cette ligne,
 	  // avec un angle droit pour détecter les deux extremitées de départ ensuite
 	  routes.addNode(((sX+eX)/2).toInt, ((sY+eY)/2).toInt, sS, sA+90);
-	  //routes.addNode(eX, eY, eS, eA, routes.lastId());
 	  
 	  
 	  
@@ -965,7 +972,7 @@ object main extends App {
 	
   chercherRecursion(inputImage,outputImage,node1);
 	
-
+  
   //////////////////////////////
   
   	
@@ -984,7 +991,8 @@ object main extends App {
   //On enregistre l'image ou l'on veut au départ
   wrappedOutputImage.saveImage(OutputPathImg);
 	
-	ecritureNoeudsAll(writerall)
+  //On écrit le csv
+	ecritureNoeudsAll();
 	
 	
 }
