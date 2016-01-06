@@ -27,7 +27,7 @@ object main extends App {
     
   //Entree image
   //ex. assets/Images/4.jpg
-	var IntputPath : String = "assets/Images/1.jpg";
+	var IntputPath : String = "assets/Images/2.jpg";
 	
 	
 	
@@ -39,9 +39,6 @@ object main extends App {
 	//ex. assets/resultat.csv
 	var OutputPathCSV : String = "assets/resultat.csv";
 	
-	//definitio du writer
-	val writer= new PrintWriter ( new File(OutputPathCSV))
-  
 
 	
 	
@@ -71,8 +68,11 @@ object main extends App {
     var r = (pixelCorrect>>16)%256;
 	  var v = (pixelCorrect>>8)%256;
 	  var b = pixelCorrect%256;
+	  
+	  var saturation = Math.max(Math.abs(r-b),Math.abs(r-v));
+	  saturation = Math.max(saturation,Math.abs(v-b))
 	
-	  return (r+v+b)/3;
+	  return Math.max(saturation,((r+v+b)/3).toInt);
 	  
   }
   
@@ -168,16 +168,30 @@ object main extends App {
 	
 	//fonction d'extraction
 	def extractionsimple() {
+	  
+	  var angle = 0;
+	  
 	for (i <- 0 to routes.networkList.length-1) {
-		if ( routes.node(i).connectionsList.length > 2 ) {
+		if ( routes.node(i).connectionsList.length != 2 ) {
+		  
 	    		ecritureNoeud(i)
+	    		angle = 0;
+	    		
 		}
 		else {
-			if (Math.abs(routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle)>5 || Math.abs(routes.node(i).angle-routes.node(routes.node(i).connectionsList(1)).angle)>5) {
+		  
+		  angle += routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle;
+		  
+			if (Math.abs(angle)>20) {
 				ecritureNoeud(i)
+				
+				angle = 0;
+				
+				
 			}
 		}
 	}
+	
 }
 	
 	
@@ -189,7 +203,7 @@ object main extends App {
 
 	  
 	    writer.write(routes.node(point).id.toString)
-	    writer.write(",  ")
+	    writer.write(", ")
 	    writer.write(routes.node(point).x.toString)
 	    writer.write(",")
 	    writer.write(routes.node(point).y.toString)
@@ -391,7 +405,7 @@ object main extends App {
   			  gradY=(hg-bd)+(hd-bg)+2*(hm-bm)+(0.5*(hhm-bbm)).toInt
   			  
   			  //On calcule le gradient général par somme quadratique avec majoration
-  			  grad=Math.min(255,Math.sqrt(gradX*gradX + gradY*gradY).toInt)
+  			  grad=Math.min(255,((Math.abs(gradX) + Math.abs(gradY))/2).toInt)
   			  
   			  //Ajout d'un seuil à 140 et on inverse les couleurs pour un bord noir
   			  grad=255-grad
@@ -1009,6 +1023,9 @@ object main extends App {
   wrappedOutputImage.saveImage(OutputPathImg);
 	
   //On écrit le csv
+  
+  	//definitio du writer
+	val writer= new PrintWriter ( new File(OutputPathCSV))
  extractionsimple()
 	writer.close()
 	
