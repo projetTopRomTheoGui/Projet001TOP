@@ -141,7 +141,6 @@ object base {
 	  
 	  var ligneBlanche = true;
 	  
-	  
 	  //On regarde la distance à gauche...
     distance1 = 1;
     while(ligneBlanche && distance1<node.size){
