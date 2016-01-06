@@ -158,7 +158,7 @@ object main extends App {
 	  
 	}
 	
-  //marquer un point
+  //marquer un point croix
 	def mkPoint(output:Array[Array[Int]], x:Int, y:Int, color:Long){
 	  
 	  mkLine(output,x-3,y,6,0,color);
@@ -180,7 +180,7 @@ object main extends App {
 		}
 		else {
 		  
-		  angle += routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle;
+		  angle += Math.max(2,routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle);
 		  
 			if (Math.abs(angle)>20) {
 				ecritureNoeud(i)
@@ -235,9 +235,9 @@ object main extends App {
 	
 	
 	
-	/////////////////////////////
-	//// ENLEVER LE PAS NOIR ////
-	/////////////////////////////
+	////////////////////////
+	//// GARDER LE NOIR ////
+	////////////////////////
 	
 	def keepBlack(src:Array[Array[Int]]){
 	  
@@ -251,9 +251,9 @@ object main extends App {
 	  
 	}
 	
-	/////////////////////////////////
-	//// FIN ENLEVER LE PAS NOIR ////
-	/////////////////////////////////
+	////////////////////////////
+	//// FIN GARDER LE NOIR ////
+	////////////////////////////
 	
 	
 	
@@ -266,7 +266,7 @@ object main extends App {
     
     
     var moyenne:Long = 0;
-    var nb:Long = 0;
+    var sommeCoef:Long = 0;
     var couleur= 0;
     var coef = 1;
     
@@ -282,21 +282,15 @@ object main extends App {
         couleur = readPixel(ix,iy,image);
         coef = 1+(Math.pow(3,(255-couleur)/30)).toInt;
         moyenne += coef*couleur;
-        nb += coef;
+        sommeCoef += coef;
         
       }
     }
     
+    //Comme on a appliquer des coefficients spéciaux, la moyenne sera avec une forte surimpression du noir
+    moyenne = moyenne/sommeCoef;
     
-    //Si on a un dépassement de la moyenne maximum
-    if(moyenne>nb*255){
-      return 255;
-    }
-    
-    //Comme on a appliquer des coeeficients spéciaux, la moyenne sera avec une forte surimpression du noir
-    moyenne = moyenne/nb;
-    
-    return moyenne.toInt;
+    return Math.min(255,moyenne.toInt);
   }
   
   
@@ -309,7 +303,7 @@ object main extends App {
     
     for(x<-0 to output(0).length-1){
       
-      //Le chargement
+      //Le chargement (50 barres)
       if(avance!=(x*50/output(0).length).toInt){
 	      avance = (x*50/output(0).length).toInt;
 	      print("|")
@@ -642,21 +636,18 @@ object main extends App {
 	  
 	  //À ce stade on a déterminé la route de taille maximale
 	  
-	  //On la trace sur l'output
-	  //tracerligne(output,routeMax(0),routeMax(1),routeMax(3),routeMax(4),0xFF880000);
-	  
 	  //On définit les variables des deux points de la route s (start) et e (end)
-	  var sX = routeMax(0);
-	  var sY = routeMax(1);
-	  var sA = routeMax(4);
-	  var sS = routeMax(2);	  
+	  var sX = routeMax(0);  //X
+	  var sY = routeMax(1);  //Y
+	  var sA = routeMax(4);  //Angle
+	  var sS = routeMax(2);	 //Size
 
 	  var eX = sX + (routeMax(3)*Math.cos(routeMax(4)*6.283/360)).toInt;
 	  var eY = sY + (routeMax(3)*Math.sin(routeMax(4)*6.283/360)).toInt;
 	  var eA = routeMax(4);
 	  var eS = sS;
 	  
-	  //Enfin on prend comme point de départ le point de départ de cette ligne,
+	  //Enfin on prend comme point de départ le point central de cette route,
 	  // avec un angle droit pour détecter les deux extremitées de départ ensuite
 	  routes.addNode(((sX+eX)/2).toInt, ((sY+eY)/2).toInt, sS, sA+90);
 	  
@@ -673,9 +664,9 @@ object main extends App {
 	
 	
 	
-	///////////////////////////////////////////////
+	///////////////////////////////////
 	//// AFFICHER LES PARALLELISME ////
-	///////////////////////////////////////////////
+	///////////////////////////////////
 	
 	
 	//Exactement le même principe que la fonction de la plus grande
@@ -756,9 +747,9 @@ object main extends App {
 	}
 	
 	
-	///////////////////////////////////////////////////
+	///////////////////////////////////
 	//// FIN AFFICHER PARALLELISME ////
-	///////////////////////////////////////////////////
+	///////////////////////////////////
 	
 	
 	
@@ -785,9 +776,9 @@ object main extends App {
 	  }
 	  
 	  //Définition des variables :
-    var lineContinuous = true;
+    var pasDeNoir = true;
     var distance = 0;
-	  var distanceMaximum = node.size*1.5;
+	  var distanceMaximum = (node.size*1.5).toInt;
 		var compteur = 0;
 	  var nouvelAngle = 0;
 	  	    
@@ -808,22 +799,22 @@ object main extends App {
     for(angle <- node.angle-160 to node.angle+160 by 2){
 	       
         //1. calculer la distance atteinte
-	      lineContinuous = true;
+	      pasDeNoir = true;
 	      distance = 0;
 	      //Tant qu'on à du blanc, on continue à grandir distance
-	      while(lineContinuous && distance<distanceMaximum){
+	      while(pasDeNoir && distance<distanceMaximum){
 	        
 	        newRouteX = x + (distance*Math.cos(angle*6.283/360)).toInt;
   		    newRouteY = y + (distance*Math.sin(angle*6.283/360)).toInt;
   		    
-	        lineContinuous = readPixel(newRouteX,newRouteY,image)>100; //si on à du noir, on a False
+	        pasDeNoir = readPixel(newRouteX,newRouteY,image)>100; //si on à du noir, on a False
 	        
 	        distance += 1;
 	        
 	      }
 	      
 	      ///////
-	      //A ce stade on connait la distance parcourable en suivant cet angle, avec une majoration de node.
+	      //A ce stade on connait la distance parcourable en suivant cet angle, avec une majoration de distanceMaximum.
 	      //
 	      // On va compter le nombre de ligne qui ne touchent pas de bord, auquel cas, lineContinuous est toujours à true
 	      // Dès qu'on retombe sur un bord, on peut prendre l'angle central des précédents
@@ -834,7 +825,7 @@ object main extends App {
 	      // avec ^ qui représente une direction à prendre.
 	      
 	      //On incrémente si on est sur une ligne sortante (un +)
-	      if(lineContinuous){
+	      if(pasDeNoir){
 	        
 	        compteur+=1
 	        
@@ -846,16 +837,16 @@ object main extends App {
 	          //Comme on connait le pas de changement d'angle (tout les 2 degrés), on peut calculer l'angle de démarage de la nouvelle route !
 	          nouvelAngle = angle - 2*(compteur/2+1).toInt;
 	          //Pour la taille on prend la taille précédente limitée par la largeur de la route (ne pas louper de croisements !)
-	          longueur = Math.min(anstaille,node.size);
+	          longueur = node.size;
 	          
   	        
-  	        //Les valeurs de position de la nouvelle route
+  	        //Les valeurs de position du nouveau noeud de route
   	        newRouteX = x + (longueur*Math.cos(nouvelAngle*6.283/360)).toInt;
   	        newRouteY = y + (longueur*Math.sin(nouvelAngle*6.283/360)).toInt;
   
   
   	        //Deux cas, si on à fait une boucle, faut pas continuer
-  	        //Cas 1 : on est sur un endroit innexploré, dans ce cas on ajoute la node et on continu
+  	        //Cas 1 : on est sur un endroit innexploré, dans ce cas on ajoute la node et on continue
   	        if(routes.lookForRoad(newRouteX, newRouteY) == -1){
   	          
         	    mkLine(output,(x).toInt,(y).toInt,longueur,nouvelAngle.toInt,0xFFFF0000);
@@ -877,6 +868,7 @@ object main extends App {
         	      //La longueur est différente car on sait précisément ou se trouve le point d'arrivee, donc on peut la calculer
         	      longueur = Math.sqrt(Math.pow(routes.node(nodeEcrasee).x-x,2)+Math.pow(routes.node(nodeEcrasee).y-y,2)).toInt;
         	      mkLine(output,(x).toInt,(y).toInt,longueur,nouvelAngle,0xFFFF8888);
+        	      
         	      routes.connect(node.id, nodeEcrasee);
         	      
         	    }
@@ -889,7 +881,6 @@ object main extends App {
 	        
 	      }
 	      
-	      anstaille = distance;
 	      	      
 	    }
 	    
@@ -897,9 +888,9 @@ object main extends App {
 	}
 	
 	
-  ///////////////////////////////////////
+  ///////////////////////////////////////////
 	//// FIN RETROUVE ROUTES PAR RECURSION ////
-	///////////////////////////////////////
+	///////////////////////////////////////////
 	
 	
 	
@@ -1024,7 +1015,7 @@ object main extends App {
 	
   //On écrit le csv
   
-  	//definitio du writer
+  	//definition du writer
 	val writer= new PrintWriter ( new File(OutputPathCSV))
  extractionsimple()
 	writer.close()

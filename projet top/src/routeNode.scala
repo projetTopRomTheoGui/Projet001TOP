@@ -38,7 +38,7 @@ class RouteNode (identity:Int) {
     //If identity is the current object
     if (this.id==identity) {
       
-     println("error_ impossible d'ajouter une connexion avec sois même.")
+     println("error_ unable to connect with self.")
       return;
     }
     
