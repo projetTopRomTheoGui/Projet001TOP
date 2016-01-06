@@ -38,6 +38,9 @@ object main extends App {
   //Sortie csv
 	//ex. assets/resultat.csv
 	var OutputPathCSV : String = "assets/resultat.csv";
+	
+	//definitio du writer
+	val writer= new PrintWriter ( new File(OutputPathCSV))
   
 
 	
@@ -163,29 +166,43 @@ object main extends App {
 	  
 	}
 	
+	//fonction d'extraction
+	def extractionsimple() {
+	for (i <- 0 to routes.networkList.length-1) {
+		if ( routes.node(i).connectionsList.length > 2 ) {
+	    		ecritureNoeud(i)
+		}
+		else {
+			if (Math.abs(routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle)>5 || Math.abs(routes.node(i).angle-routes.node(routes.node(i).connectionsList(1)).angle)>5) {
+				ecritureNoeud(i)
+			}
+		}
+	}
+}
+	
+	
+	
 	//écriture dans le fichier csv
-	def ecritureNoeudsAll() {
+	def ecritureNoeud(point:Int) {
 	  
-	  val writer= new PrintWriter ( new File(OutputPathCSV));
+	  
 
-	  for (i <- 0 to routes.networkList.length-1) {
-	    writer.write(routes.node(i).id.toString)
+	  
+	    writer.write(routes.node(point).id.toString)
 	    writer.write(",  ")
-	    writer.write(routes.node(i).x.toString)
+	    writer.write(routes.node(point).x.toString)
 	    writer.write(",")
-	    writer.write(routes.node(i).y.toString)
+	    writer.write(routes.node(point).y.toString)
 	    writer.write(",")
-	    writer.write(routes.node(i).angle.toString)
+	    writer.write(routes.node(point).angle.toString)
 	    writer.write(",")
-	    writer.write(routes.node(i).connectionsList.length.toString)
+	    writer.write(routes.node(point).connectionsList.length.toString)
 	    writer.write(",\"")
-	    for (k <- 0 to routes.node(i).connectionsList.length-1) {
-	      writer.write(routes.node(i).connectionsList(k).toString)
+	    for (k <- 0 to routes.node(point).connectionsList.length-1) {
+	      writer.write(routes.node(point).connectionsList(k).toString)
 	      writer.write(";")
 	    }
 	    writer.write("\" \r\n")
-	  }
-	  writer.close()
 	}
 		
 	
@@ -992,7 +1009,7 @@ object main extends App {
   wrappedOutputImage.saveImage(OutputPathImg);
 	
   //On écrit le csv
-	ecritureNoeudsAll();
-	
+ extractionsimple()
+	writer.close()
 	
 }
