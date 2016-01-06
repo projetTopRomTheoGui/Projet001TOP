@@ -130,4 +130,46 @@ object base {
 	  
 	}
 	
+	//Detecte la taille du plus gros point blanc qu'on peut placer ici
+	def changeTaille(image: Array[Array[Int]], node: RouteNode){
+	  	  
+	  var x = node.x;
+	  var y = node.y;
+	  
+	  var distance1 = 1;
+	  var distance2 = 1;
+	  
+	  var ligneBlanche = true;
+	  
+	  
+	  //On regarde la distance à gauche...
+    distance1 = 1;
+    while(ligneBlanche && distance1<node.size){
+      x = node.x + (distance1*Math.cos((node.angle+90)*6.283/360)).toInt;
+      y = node.y + (distance1*Math.sin((node.angle+90)*6.283/360)).toInt;
+      
+      ligneBlanche = readPixel(x,y,image)>100
+    
+      distance1+=1;
+      
+    }
+    
+    //Puis à droite
+    ligneBlanche = true;
+    distance2 = 1;
+    while(ligneBlanche && distance2<node.size){
+      x = node.x + (distance2*Math.cos((node.angle-90)*6.283/360)).toInt;
+      y = node.y + (distance2*Math.sin((node.angle-90)*6.283/360)).toInt;
+      
+      ligneBlanche = readPixel(x,y,image)>100
+    
+      distance2+=1;
+      
+    }
+	  
+	  node.setSize(Math.min(Math.max((distance1+distance2-2),node.size*0.9),node.size*1.1).toInt);
+	  
+	  
+	}
+	
 }

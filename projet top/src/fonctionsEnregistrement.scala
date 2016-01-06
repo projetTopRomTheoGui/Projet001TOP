@@ -53,7 +53,7 @@ object e {
     var y = node.y;
     var newRouteX = 0;
     var newRouteY = 0;
-
+    
     var anstaille = 0;
     var longueur = 0;
 
@@ -107,13 +107,17 @@ object e {
           newRouteX = x + (longueur * Math.cos(nouvelAngle * 6.283 / 360)).toInt;
           newRouteY = y + (longueur * Math.sin(nouvelAngle * 6.283 / 360)).toInt;
 
+          nodeEcrasee = routes.lookForRoad(newRouteX, newRouteY);
           //Deux cas, si on à fait une boucle, faut pas continuer
           //Cas 1 : on est sur un endroit innexploré, dans ce cas on ajoute la node et on continue
-          if (routes.lookForRoad(newRouteX, newRouteY) == -1) {
+          if (nodeEcrasee == -1) {
 
+            
             base.mkLine(output, (x).toInt, (y).toInt, longueur, nouvelAngle.toInt, 0xFFFF0000);
             routes.addNode(newRouteX, newRouteY, node.size, nouvelAngle.toInt, node.id);
 
+            base.changeTaille(image,routes.node(routes.lastId()));
+            
             chercherRecursion(image, output, routes.node(routes.lastId()),routes);
 
             //Cas 2 : on se connecte au noeud qu'on retrouve, et on ne fait rien !
@@ -121,10 +125,8 @@ object e {
             // ce pourrait être un demi tour !
           } else {
 
-            nodeEcrasee = routes.lookForRoad(newRouteX, newRouteY);
-
             //Pour les demi tours
-            if (Math.abs(nodeEcrasee - node.id) > 2) {
+            if (nodeEcrasee > 2) {
 
               //On connecte la route
               //La longueur est différente car on sait précisément ou se trouve le point d'arrivee, donc on peut la calculer
@@ -182,15 +184,17 @@ object e {
 
         ecritureNoeud(i,routes,writer)
         angle = 0;
+        
+        total += 1;
 
       } else {
 
         angle += routes.node(i).angle - routes.node(routes.node(i).connectionsList(0)).angle;
 
-        if (Math.abs(angle) > 2 && Math.abs(angle) >= 0) {
+        if (angle < 2 && angle >= 0) {
           angle += 2;
         }
-        if (Math.abs(angle) > -2 && Math.abs(angle) <= 0) {
+        if (angle > -2 && angle <= 0) {
           angle += -2;
         }
 

@@ -27,7 +27,7 @@ object main extends App {
 
   //Entree image
   //ex. assets/Images/4.jpg
-  var IntputPath: String = "assets/Images/8.jpg";
+  var IntputPath: String = "assets/Images/1.jpg";
 
   //Sortie graphique
   //ex. assets/resultat.jpg
@@ -35,7 +35,7 @@ object main extends App {
 
   //Sortie csv
   //int 0 = meilleur 20 moyen 100 simple 2000 très simple
-  var NiveauSimplification = 30;
+  var NiveauSimplification = 20;
   //ex. assets/resultat.csv
   var OutputPathCSV: String = "assets/resultat.csv";
 
@@ -73,6 +73,7 @@ object main extends App {
 
   // Enregistrement de la route
   var node = routes.node(0);
+  println("-->"+node.size)
   e.enregistrer(node, routes, inputImage, outputImage, OutputPathCSV, NiveauSimplification)
 
   //On enregistre l'image ou l'on veut au départ
