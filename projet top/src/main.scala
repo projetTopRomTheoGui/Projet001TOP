@@ -180,7 +180,14 @@ object main extends App {
 		}
 		else {
 		  
-		  angle += Math.max(2,routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle);
+		  angle += routes.node(i).angle-routes.node(routes.node(i).connectionsList(0)).angle;
+		  
+		  if(Math.abs(angle)>2 && Math.abs(angle)>=0){
+		    angle = 2;
+		  }
+		  if(Math.abs(angle)> -2 && Math.abs(angle)<=0){
+		    angle = -2;
+		  }
 		  
 			if (Math.abs(angle)>20) {
 				ecritureNoeud(i)
