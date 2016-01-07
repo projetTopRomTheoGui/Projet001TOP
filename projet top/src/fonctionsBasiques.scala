@@ -26,9 +26,11 @@ object base {
 	  var saturation = Math.max(Math.abs(r-b),Math.abs(r-v));
 	  saturation = Math.max(saturation,Math.abs(v-b))
 	
-	  return Math.max(saturation,((r+v+b)/3).toInt);
+	  return (Math.max(saturation,(r+v+b)/3)).toInt;
 	  
   }
+  
+
   
   //Retourne du blanc si on est en dehors de l'image (évite les out of bound)
   //Positions x et y, et tableau de pixels
@@ -45,7 +47,7 @@ object base {
 	//Blanc ou noir selon seuil de 80 sur un pixel
 	def seuilPixel(colorInput:Int): Int={
 	  
-	  if(Pixel2Int(colorInput)>80){
+	  if(Pixel2Int(colorInput)>40){
 	    return 0xFFFFFFFF;
 	  }
 	  return 0xFF000000;

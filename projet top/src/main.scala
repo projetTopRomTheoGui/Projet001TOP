@@ -19,7 +19,7 @@ object main extends App {
   /////    sortie.                                                    /////
   /////    L'un des fichiers contient les route sous forme graphique. /////
   /////    L'autre est un fichier csv, contenant les noeuds de route. /////
-  /////    Les lignes du csv contiennent, la position, la taille de   /////
+  /////    Les lignes du csv contiennent, laa position, la taille de   /////
   /////     la route, et les noeuds connectés.                        /////
   /////                                                               /////
   /////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ object main extends App {
 
   //Entree image
   //ex. assets/Images/4.jpg
-  var IntputPath: String = "assets/Images/1.jpg";
+  var IntputPath: String = "assets/Images/4.jpg";
 
   //Sortie graphique
   //ex. assets/resultat.jpg
@@ -67,9 +67,11 @@ object main extends App {
   
   //Améliorer l'image
   f.filtrer(inputImage, outputImage);
-
+  wrappedOutputImage.saveImage("assets/temp/test.png");
+  
   // Detection de la route
   d.detecter(inputImage, outputImage, routes);
+  wrappedInputImage.saveImage("assets/temp/test2.png");
 
   // Enregistrement de la route
   var node = routes.node(0);
