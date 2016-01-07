@@ -8,7 +8,7 @@ object e {
   
   def enregistrer(node: RouteNode, routes: routeNetwork, input: Array[Array[Int]], output: Array[Array[Int]], path: String, NiveauSimplification: Int){
     
-        
+      println("\n\nRecherche de la route...");
       /////// Recursion a partir de la node de la route precedente ///////    
       chercherRecursion(input, output, node, routes);
     
@@ -112,13 +112,16 @@ object e {
           //Cas 1 : on est sur un endroit innexploré, dans ce cas on ajoute la node et on continue
           if (nodeEcrasee == -1) {
 
-            
-            base.mkLine(output, (x).toInt, (y).toInt, longueur, nouvelAngle.toInt, 0xFFFF0000);
-            routes.addNode(newRouteX, newRouteY, node.size, nouvelAngle.toInt, node.id);
 
-            base.changeTaille(image,routes.node(routes.lastId()));
-            
-            chercherRecursion(image, output, routes.node(routes.lastId()),routes);
+              
+                base.mkLine(output, (x).toInt, (y).toInt, longueur, nouvelAngle.toInt, 0xFF008800);
+                routes.addNode(newRouteX, newRouteY, node.size, nouvelAngle.toInt, node.id);
+                                
+                base.changeTaille(image,routes.node(routes.lastId()));
+                
+                chercherRecursion(image, output, routes.node(routes.lastId()),routes);
+              
+
 
             //Cas 2 : on se connecte au noeud qu'on retrouve, et on ne fait rien !
             // On ajoute une précaution, il ne faut pas s'attacher à soit même ou bien à quelqu'un de trop proche,
@@ -133,7 +136,7 @@ object e {
               longueur = Math.sqrt(Math.pow(routes.node(nodeEcrasee).x - x, 2) + Math.pow(routes.node(nodeEcrasee).y - y, 2)).toInt;
               base.mkLine(output, (x).toInt, (y).toInt, longueur, nouvelAngle.toDouble, 0xFFFF8888);
 
-              routes.connect(node.id, nodeEcrasee);
+              routes.connect(node.id, nodeEcrasee); 
 
             }
           }
@@ -220,6 +223,8 @@ object e {
         
         
       }
+
+      
       
     }
     

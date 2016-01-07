@@ -13,6 +13,7 @@ class RouteNode (identity:Int) {
   var y: Int = 0;
   var size: Int = 0;
   var angle: Int = 0;
+  
  
   var connectionsList: List[Int] = Nil;
   
@@ -26,6 +27,7 @@ class RouteNode (identity:Int) {
   def setSize (size: Int) {
     this.size = size;
   }
+
   
   //Set road Angle at this node
   def setAngle (angle: Int) {

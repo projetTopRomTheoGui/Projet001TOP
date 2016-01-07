@@ -44,6 +44,8 @@ object base {
 	  
 	}
 	
+
+	
 	//Blanc ou noir selon seuil de 80 sur un pixel
 	def seuilPixel(colorInput:Int): Int={
 	  

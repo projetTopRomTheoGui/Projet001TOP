@@ -26,8 +26,8 @@ object main extends App {
   /////////////////////////////////////////////////////////////////////////
 
   //Entree image
-  //ex. assets/Images/4.jpg
-  var IntputPath: String = "assets/Images/4.jpg";
+  //ex. assets/Images/1.jpg
+  var IntputPath: String = "assets/Images/1.jpg";
 
   //Sortie graphique
   //ex. assets/resultat.jpg
@@ -67,15 +67,12 @@ object main extends App {
   
   //Améliorer l'image
   f.filtrer(inputImage, outputImage);
-  wrappedOutputImage.saveImage("assets/temp/test.png");
   
   // Detection de la route
   d.detecter(inputImage, outputImage, routes);
-  wrappedInputImage.saveImage("assets/temp/test2.png");
 
   // Enregistrement de la route
   var node = routes.node(0);
-  println("-->"+node.size)
   e.enregistrer(node, routes, inputImage, outputImage, OutputPathCSV, NiveauSimplification)
 
   //On enregistre l'image ou l'on veut au départ

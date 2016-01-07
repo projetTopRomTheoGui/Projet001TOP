@@ -5,20 +5,24 @@ object f {
     
     /////// Appliquer un flou avec surimpression ///////
   
-    println("\n\nFlou par 4... (1-flou4.jpg)");
-    moreBlackBlur(input, output, 40);
+    println("\n\nRepérage du relief...");
+    relief(input, output, 40); 
   
     var input2 = base.copyImg(output);
     
-    moreBlackBlur2(input2, output, 2);
+    println("\n\nAmélioration (1/2)...");
+    
+    moreBlackBlur(input2, output, 2);
     /////// Enlever ce qui n'est pas une route ///////
   
     //println("\n\nGarder la route... (2-route.jpg)");
     keepBlack(output);
     
+    println("\n\nAmélioration (2/2)...");
+    
     input2 = base.copyImg(output);
     
-    moreBlackBlur2(input2, output, 4);
+    moreBlackBlur(input2, output, 4);
     
     /////// Enlever ce qui n'est pas une route ///////
 
@@ -65,7 +69,7 @@ object f {
   ///////////////////////////////////
 
   //La moyenne des couleurs sur le cercle de taille donnee avec surimpression du noir
-  def moyenne(size: Int, x: Int, y: Int, image: Array[Array[Int]]): Int = {
+  def getReliefVal(size: Int, x: Int, y: Int, image: Array[Array[Int]]): Int = {
 
     var moyenne: Long = 0;
     var sommeCoef: Long = 0;
@@ -76,8 +80,8 @@ object f {
     var yCarre = Math.max(0,Math.min(image.length-1-size,y-size));
 
     //Pour chaque pixel du carré autour
-    for (ix <- xCarre to xCarre + size) {
-      for (iy <- yCarre to yCarre + size) {
+    for (ix <- xCarre to xCarre + size by 4) {
+      for (iy <- yCarre to yCarre + size by 4) {
 
         //Couleur du pixel et application d'un coefficient tel que
         //Plus le pixel est noir (proche de 0) plus le coefficient est grand
@@ -98,9 +102,10 @@ object f {
     return Math.min(255, moyenne.toInt);
   }
 
-  def moreBlackBlur(input: Array[Array[Int]], output: Array[Array[Int]], size: Int) {
+  def relief(input: Array[Array[Int]], output: Array[Array[Int]], size: Int) {
 
     var couleur = 0;
+    var relief = 0;
     
     //Afficher un chargement
     var avance = 0;
@@ -119,17 +124,21 @@ object f {
 
         //Remplacer chaque pixel par la moyenne définie ci dessus
         //println(moyenne(size,x,y,input) + " _ " + base.readPixel(x,y,input)) 
-        couleur = 255-Math.abs(moyenne(size, x, y, input)-base.readPixel(x, y, input));
+        relief = getReliefVal(size, x, y, input);
+        couleur = 255-Math.abs(relief-base.readPixel(x, y, input));
         output(y)(x) = base.Int2Pixel(couleur);
+        
+        
       }
     }
+    
 
     println("");
 
   }
   
   //La moyenne des couleurs sur le cercle de taille donnee avec surimpression du noir
-  def moyenne2(size: Int, x: Int, y: Int, image: Array[Array[Int]]): Int = {
+  def surimpression(size: Int, x: Int, y: Int, image: Array[Array[Int]]): Int = {
 
     var moyenne: Long = 0;
     var sommeCoef: Long = 0;
@@ -159,7 +168,7 @@ object f {
     return Math.min(255, moyenne.toInt);
   }
   
-  def moreBlackBlur2(input: Array[Array[Int]], output: Array[Array[Int]], size: Int) {
+  def moreBlackBlur(input: Array[Array[Int]], output: Array[Array[Int]], size: Int) {
 
     var couleur = 0;
     
@@ -179,7 +188,7 @@ object f {
       for (y <- 0 to output.length - 1) {
 
         //Remplacer chaque pixel par la moyenne définie ci dessus
-        output(y)(x) = base.Int2Pixel(moyenne2(size, x, y, input));
+        output(y)(x) = base.Int2Pixel(surimpression(size, x, y, input));
       }
     }
 
